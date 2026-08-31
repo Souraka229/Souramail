@@ -30,3 +30,5 @@ _archive/
 # references sources (add as submodules, not raw)
 references/*/
 !references/README.md
+
+.vercel
