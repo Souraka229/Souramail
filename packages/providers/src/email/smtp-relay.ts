@@ -11,6 +11,13 @@ export interface SmtpRelayConfig {
   pass: string;
   /** STARTTLS on 587 (secure:false) vs implicit TLS on 465 (secure:true). */
   secure?: boolean;
+  /**
+   * Force this address as both the envelope MAIL FROM and the visible `From:`,
+   * moving the caller's real `from` to `Reply-To`. Needed for restrictive
+   * relays used in the temporary bring-up phase (Gmail SMTP, or a provider
+   * where only one sender is verified) that reject a mismatched sender.
+   */
+  sender?: string;
 }
 
 /**
@@ -22,8 +29,10 @@ export interface SmtpRelayConfig {
 export class SmtpRelayProvider implements EmailProvider {
   readonly name = 'smtp-relay';
   private readonly tx: Transporter;
+  private readonly sender?: string;
 
   constructor(cfg: SmtpRelayConfig) {
+    this.sender = cfg.sender;
     const opts: SMTPPool.Options = {
       host: cfg.host,
       port: cfg.port,
@@ -42,7 +51,11 @@ export class SmtpRelayProvider implements EmailProvider {
       ...(msg.idempotencyKey ? { 'X-Soura-Idempotency-Key': msg.idempotencyKey } : {}),
       'X-Soura-Tenant': msg.tenantId,
     };
-    const envelope = { from: msg.returnPath ?? msg.from, to: msg.to };
+    // In forced-sender mode the relay only trusts `this.sender`; keep the real
+    // author reachable via Reply-To.
+    const visibleFrom = this.sender ?? msg.from;
+    const replyTo = this.sender ? (msg.replyTo ?? msg.from) : msg.replyTo;
+    const envelope = { from: this.sender ?? msg.returnPath ?? msg.from, to: msg.to };
 
     const mail: Mail.Options = msg.raw
       ? {
@@ -53,9 +66,9 @@ export class SmtpRelayProvider implements EmailProvider {
       : {
           envelope,
           headers,
-          from: msg.from,
+          from: visibleFrom,
           to: msg.to,
-          replyTo: msg.replyTo,
+          replyTo,
           subject: msg.subject,
           text: msg.text,
           html: msg.html,

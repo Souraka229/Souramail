@@ -2,7 +2,7 @@
  * Env-driven provider selection. Application code calls `getEmailProvider()` etc.
  * and never learns which backend it got — that's the whole point of §4.5.
  *
- *   EMAIL_PROVIDER = smtp-relay | dev        (phase 5 adds: kumomta)
+ *   EMAIL_PROVIDER = resend | smtp-relay | dev   (phase 5 adds: kumomta)
  *   S3_ENDPOINT / S3_* ................ StorageProvider (R2 · S3 · MinIO)
  *   CLOUDFLARE_API_TOKEN ............. CloudflareDnsProvider
  *   STALWART_ADMIN_URL / _USER / _SECRET ... StalwartAdmin
@@ -28,6 +28,10 @@ export function getEmailProvider(): Promise<EmailProvider> {
   if (_email) return _email;
   const kind = env('EMAIL_PROVIDER') ?? 'dev';
   _email = (async () => {
+    if (kind === 'resend') {
+      const { ResendProvider } = await import('./email/resend.ts');
+      return new ResendProvider({ apiKey: require_('RESEND_API_KEY') });
+    }
     if (kind === 'smtp-relay') {
       const { SmtpRelayProvider } = await import('./email/smtp-relay.ts');
       return new SmtpRelayProvider({
@@ -35,6 +39,7 @@ export function getEmailProvider(): Promise<EmailProvider> {
         port: Number(env('SMTP_RELAY_PORT') ?? 587),
         user: require_('SMTP_RELAY_USER'),
         pass: require_('SMTP_RELAY_PASS'),
+        sender: env('SMTP_RELAY_SENDER'),
       });
     }
     if (kind === 'dev') {
