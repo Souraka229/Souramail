@@ -8,12 +8,13 @@ import { scanDomainAction } from '../actions';
 import { healthTone } from '../health';
 import { CopyField } from './copy-field';
 
-const STATE_LABEL: Record<string, { label: string; tone: 'neutral' | 'green' | 'amber' | 'red' }> =
-  {
-    verified: { label: 'Verified', tone: 'green' },
-    pending: { label: 'Detected, not matching', tone: 'amber' },
-    missing: { label: 'Not found', tone: 'red' },
-  };
+type Tone = 'neutral' | 'green' | 'amber' | 'red';
+
+const STATE_LABEL: Record<'verified' | 'pending' | 'missing', { label: string; tone: Tone }> = {
+  verified: { label: 'Verified', tone: 'green' },
+  pending: { label: 'Detected, not matching', tone: 'amber' },
+  missing: { label: 'Not found', tone: 'red' },
+};
 
 export default async function DomainDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -70,7 +71,7 @@ export default async function DomainDetailPage({ params }: { params: Promise<{ i
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: space.md }}>
         {records.map((r) => {
-          const s = STATE_LABEL[r.state] ?? STATE_LABEL.missing!;
+          const s = STATE_LABEL[r.state];
           return (
             <Card key={r.id}>
               <div

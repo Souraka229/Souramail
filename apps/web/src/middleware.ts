@@ -9,10 +9,7 @@ import { type NextRequest, NextResponse } from 'next/server';
  * We check the cookie by name rather than importing `better-auth/cookies` to
  * keep the middleware bundle free of the Node-only `jose` code path on Edge.
  */
-const SESSION_COOKIES = [
-  'better-auth.session_token',
-  '__Secure-better-auth.session_token',
-];
+const SESSION_COOKIES = ['better-auth.session_token', '__Secure-better-auth.session_token'];
 
 export function middleware(req: NextRequest): NextResponse {
   const hasSession = SESSION_COOKIES.some((name) => req.cookies.has(name));

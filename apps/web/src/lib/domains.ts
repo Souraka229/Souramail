@@ -105,7 +105,8 @@ export async function createDomain(tenantId: string, rawName: string): Promise<s
       .insert(domain)
       .values({ tenantId, name, status: 'pending', dnsProvider: provider })
       .returning({ id: domain.id });
-    const domainId = row!.id;
+    if (!row) throw new DomainError('Could not create the domain. Please try again.');
+    const domainId = row.id;
 
     await tx.insert(dnsRecord).values(
       expected.map((e) => ({
