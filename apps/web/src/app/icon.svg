@@ -1,0 +1,9 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>SouraMAIL</title>
+  <rect width="64" height="64" rx="14" fill="#00a48a"/>
+  <g stroke="#ffffff" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M18 12 H44 L56 24 V40 L44 52 H18 L8 40 V24 L18 12 Z"/>
+    <path d="M23 22 H39 L46 29 V35 L39 42 H23 L16 35 V29 L23 22 Z"/>
+    <path d="M40 22 H28 Q20 22 20 28 Q20 33 27 33 H35 Q44 33 44 40 Q44 46 36 46 H24"/>
+  </g>
+</svg>
