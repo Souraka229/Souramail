@@ -35,6 +35,7 @@ export function getEmailProvider(): Promise<EmailProvider> {
         port: Number(env('SMTP_RELAY_PORT') ?? 587),
         user: require_('SMTP_RELAY_USER'),
         pass: require_('SMTP_RELAY_PASS'),
+        sender: env('SMTP_RELAY_SENDER'),
       });
     }
     if (kind === 'dev') {
