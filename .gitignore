@@ -18,6 +18,13 @@ coverage/
 infra/.data/
 infra/**/secrets/
 
+# terraform
+infra/terraform/.terraform/
+infra/terraform/*.tfstate
+infra/terraform/*.tfstate.*
+infra/terraform/terraform.tfvars
+infra/terraform/.terraform.lock.hcl
+
 # editor / os
 .DS_Store
 Thumbs.db

@@ -1,0 +1,8 @@
+# Copy to terraform.tfvars (git-ignored) and fill in.
+cloudflare_api_token  = ""
+cloudflare_account_id = ""
+cloudflare_zone_id    = ""
+root_domain           = "souramail.com"
+r2_bucket_name        = "souramail-mail"
+mail_host_ipv4        = ""
+send_host_ipv4        = ""

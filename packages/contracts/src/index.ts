@@ -53,6 +53,19 @@ export const sendJob = z.object({
 });
 export type SendJob = z.infer<typeof sendJob>;
 
+// Enqueued by apps/api when Stalwart's MTA hook posts an accepted inbound message
+// (docs/05 §4.1). `rawMimeBase64` is the full RFC822; the worker parses it,
+// offloads it to object storage, and writes the message/thread/attachment rows.
+export const inboundJob = z.object({
+  tenantId: z.string().uuid(),
+  mailboxId: z.string().uuid(),
+  rawMimeBase64: z.string().min(1),
+  /** Rspamd verdict passed through from the milter (docs/05 §4.1 step 6). */
+  spamScore: z.number().optional(),
+  isSpam: z.boolean().optional(),
+});
+export type InboundJob = z.infer<typeof inboundJob>;
+
 // ─── API key scopes (least privilege) ───────────────────────────────────
 export const apiScopes = [
   'emails:send',
