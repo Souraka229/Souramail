@@ -1,0 +1,18 @@
+# SouraMAIL — Cloudflare Email Routing Worker
+#
+#   npx wrangler deploy
+#   npx wrangler secret put INBOUND_WEBHOOK_SECRET
+#
+# INBOUND_WEBHOOK_SECRET must match the value set in Vercel for the `souramail`
+# project (Production). It is a secret — never put it in this file.
+
+name = "souramail-email-inbound"
+main = "src/worker.js"
+compatibility_date = "2026-01-01"
+
+[vars]
+# Public webhook URL of the deployed web app. Change the host if you move domains.
+INBOUND_WEBHOOK_URL = "https://gala-guema.xyz/api/webhooks/email-inbound"
+
+[observability]
+enabled = true
