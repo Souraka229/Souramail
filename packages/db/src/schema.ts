@@ -198,7 +198,11 @@ export const message = pgTable(
     toAddrs: jsonb('to_addrs').$type<string[]>().notNull().default([]),
     subject: text('subject'),
     snippet: text('snippet'),
-    mimeKey: text('mime_key').notNull(),
+    // Raw MIME goes to object storage when configured (mimeKey). Without storage
+    // (managed/serverless path) the parsed bodies live inline instead.
+    mimeKey: text('mime_key'),
+    bodyText: text('body_text'),
+    bodyHtml: text('body_html'),
     sizeBytes: bigint('size_bytes', { mode: 'number' }).notNull().default(0),
     spamScore: integer('spam_score'),
     flags: jsonb('flags').$type<string[]>().notNull().default([]),

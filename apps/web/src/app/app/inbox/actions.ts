@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { requireAppContext } from '@/lib/session';
-import { getWebmailClient, WebmailUnavailable } from '@/lib/webmail';
+import { getMailbox, WebmailUnavailable } from '@/lib/webmail';
 
 export async function markReadAction(formData: FormData): Promise<void> {
   const { workspace } = await requireAppContext();
@@ -10,10 +10,10 @@ export async function markReadAction(formData: FormData): Promise<void> {
   const emailId = String(formData.get('emailId') ?? '');
   const seen = String(formData.get('seen') ?? 'true') === 'true';
   try {
-    const { jmap } = await getWebmailClient(workspace.workspaceId, mailboxId);
-    await jmap.setKeywords(emailId, { $seen: seen });
+    const mb = await getMailbox(workspace.workspaceId, mailboxId);
+    await mb.markRead(emailId, seen);
   } catch {
-    /* webmail unavailable — nothing to toggle */
+    /* unavailable — nothing to toggle */
   }
   revalidatePath('/app/inbox');
 }
@@ -43,21 +43,8 @@ export async function sendEmailAction(
   }
 
   try {
-    const { jmap, address } = await getWebmailClient(workspace.workspaceId, mailboxId);
-    const folders = await jmap.listMailboxes();
-    const drafts = folders.find((f) => f.role === 'drafts');
-    const sent = folders.find((f) => f.role === 'sent');
-    if (!drafts) return { error: 'This mailbox has no Drafts folder.' };
-
-    await jmap.sendEmail({
-      from: address,
-      to,
-      subject: subject || '(no subject)',
-      text,
-      draftsMailboxId: drafts.id,
-      sentMailboxId: sent?.id,
-      inReplyTo,
-    });
+    const mb = await getMailbox(workspace.workspaceId, mailboxId);
+    await mb.send({ to, subject, text, inReplyTo });
   } catch (err) {
     if (err instanceof WebmailUnavailable) return { error: err.message };
     return { error: err instanceof Error ? err.message : 'Could not send the message.' };

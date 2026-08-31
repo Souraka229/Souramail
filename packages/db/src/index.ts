@@ -9,6 +9,11 @@ export {
   resolveOutboundJobByProviderMsg,
 } from './deliverability.ts';
 export {
+  type StoreInboundInput,
+  type StoreInboundResult,
+  storeInboundMessage,
+} from './inbound-store.ts';
+export {
   type CreateMailboxRow,
   countMailboxes,
   deleteMailbox,
