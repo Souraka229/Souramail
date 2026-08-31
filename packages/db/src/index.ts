@@ -1,3 +1,13 @@
+export {
+  type ApiKeyRow,
+  type ApiScope,
+  createApiKey,
+  listApiKeys,
+  type ResolvedApiKey,
+  resolveApiKey,
+  revokeApiKey,
+  touchApiKey,
+} from './api-keys.ts';
 export { createDb, createPool, type Db, getDb, getPool } from './client.ts';
 export {
   type ApplyDeliveryEventInput,

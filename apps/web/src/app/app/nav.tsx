@@ -38,8 +38,9 @@ const SECTIONS: { title: string; items: Item[] }[] = [
   {
     title: 'Developer',
     items: [
-      { href: '/app', label: 'API Access', icon: 'terminal', soon: true },
+      { href: '/app/settings/api-keys', label: 'API Keys', icon: 'key' },
       { href: '/app', label: 'Webhooks', icon: 'webhook', soon: true },
+      { href: '/app', label: 'MCP', icon: 'account_tree', soon: true },
     ],
   },
 ];
