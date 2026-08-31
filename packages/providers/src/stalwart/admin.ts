@@ -100,6 +100,13 @@ export class StalwartAdmin {
     });
   }
 
+  /** Add another app password to an existing principal (e.g. a webmail secret). */
+  async addSecret(address: string, secret: string): Promise<void> {
+    await this.req('PATCH', `/api/principal/${encodeURIComponent(address)}`, [
+      { action: 'addItem', field: 'secrets', value: secret },
+    ]);
+  }
+
   async deletePrincipal(name: string): Promise<void> {
     await this.req('DELETE', `/api/principal/${encodeURIComponent(name)}`);
   }

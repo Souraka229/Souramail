@@ -63,9 +63,18 @@
 | Provisioning : **2 mots de passe** — celui montré une fois (clients externes) + `webmailSecret` chiffré-stocké (proxy JMAP) ; `StalwartAdmin.createMailbox` accepte un tableau | `apps/web/src/lib/mailboxes.ts` | |
 | **Webmail `/app/inbox`** : sélecteur mailbox + chips dossiers (rôles JMAP) + liste + volet de lecture, `?mailbox&folder&email` ; action `markReadAction` ; états « aucune mailbox » / « serveur mail non joignable » propres | `apps/web/src/app/app/inbox/*`, `apps/web/src/lib/webmail.ts` | |
 
-## Câblage restant (Phase 1 → Phase 2)
+## Fait — composer + liveness + self-heal
 
-- **Push temps réel** : EventSource JMAP (`eventSourceUrl`) → WebSocket vers le client (aujourd'hui : rechargement manuel).
-- **Composer** : envoi depuis le webmail → `Email/set` draft + queue `send`.
-- **Reconcile job** : pousser vers Stalwart les mailboxes créées en `skipped-no-server` + (re)provisionner `webmail_secret_enc` si absent.
-- **`apps/api` déployé** : le webhook SES et le MTA-hook y vivent ; relancer le bring-up Neon pour les 3 fonctions SECURITY DEFINER (`mailbox_by_address`, `outbound_job_by_provider_msg` + migration `0002`).
+| Brique | Où |
+| ------ | -- |
+| **Composer JMAP** : `packages/jmap` → `getIdentities()` + `sendEmail()` = batch `Email/set` draft → `EmailSubmission/set` → move Drafts→Sent (`onSuccessUpdateEmail`). DKIM signé par Rspamd-out, le webmail n'y touche pas. Test dédié. | `packages/jmap/src/index.ts` |
+| **UI** : bouton *Compose*, volet composeur (`?compose=1`), bouton *Reply* dans le volet de lecture (`?reply=<id>` — préremplit To / `Re:` / `inReplyTo` / citation). Action `sendEmailAction` (valide les adresses, choisit Drafts/Sent par rôle). | `apps/web/src/app/app/inbox/{compose.tsx,actions.ts,page.tsx}` |
+| **Liveness** : `<Live />` rafraîchit au focus fenêtre + toutes les 20 s (le vrai push EventSource JMAP arrive quand le proxy tourne sur un conteneur, pas une fonction serverless). | `apps/web/src/app/app/inbox/live.tsx` |
+| **Self-heal du credential webmail** : `getWebmailClient` — si `webmail_secret_enc` absent mais Stalwart joignable → `StalwartAdmin.addSecret()` + persiste le chiffré. Remplace le reconcile job pour ce cas. | `apps/web/src/lib/webmail.ts`, `providers/src/stalwart/admin.ts` |
+
+## Câblage restant
+
+- **Push temps réel natif** : proxy EventSource JMAP (`eventSourceUrl`) → SSE/WebSocket — pertinent quand `apps/api` tourne en conteneur.
+- **Reconcile job périodique** : re-pousser vers Stalwart les mailboxes `skipped-no-server` (le self-heal couvre déjà l'accès webmail).
+- **`apps/api` déployé** : webhook SES + MTA-hook y vivent ; relancer le bring-up Neon pour les 3 fonctions SECURITY DEFINER + migrations `0001`+`0002`.
+- Provisioning externe : VPS mail (PTR `mx1`), SES hors sandbox, token Cloudflare.

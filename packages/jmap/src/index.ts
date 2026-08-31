@@ -1,14 +1,16 @@
 /**
- * Minimal typed JMAP client (RFC 8620 core + RFC 8621 mail), enough for the
- * SouraMAIL webmail: session, Mailbox/get, Email/query + Email/get,
- * Email/set (keywords). Talks to Stalwart, which speaks JMAP natively (docs/05
- * §7, references/README.md #1).
+ * Minimal typed JMAP client (RFC 8620 core + RFC 8621 mail + RFC 8621
+ * submission), enough for the SouraMAIL webmail: session, Mailbox/get,
+ * Email/query + Email/get, Email/set (keywords), and compose+submit via
+ * Identity/get + Email/set + EmailSubmission/set. Talks to Stalwart, which speaks
+ * JMAP natively (docs/05 §7, references/README.md #1).
  *
  * No dependencies — global `fetch`.
  */
 
 const MAIL_CAP = 'urn:ietf:params:jmap:mail';
 const CORE_CAP = 'urn:ietf:params:jmap:core';
+const SUBMISSION_CAP = 'urn:ietf:params:jmap:submission';
 
 export interface JmapSession {
   apiUrl: string;
@@ -37,6 +39,7 @@ export interface JmapEmailAddress {
 export interface JmapEmail {
   id: string;
   threadId: string;
+  messageId?: string[] | null;
   mailboxIds: Record<string, boolean>;
   keywords: Record<string, boolean>;
   from?: JmapEmailAddress[] | null;
@@ -176,6 +179,7 @@ export class JmapClient {
           properties: [
             'id',
             'threadId',
+            'messageId',
             'mailboxIds',
             'keywords',
             'from',
@@ -208,6 +212,103 @@ export class JmapClient {
     }
     await this.request([['Email/set', { accountId: acc, update: { [id]: update } }, '0']]);
   }
+
+  async getIdentities(accountId?: string): Promise<JmapIdentity[]> {
+    const acc = accountId ?? (await this.accountId());
+    const [resp] = await this.request(
+      [['Identity/get', { accountId: acc, ids: null }, '0']],
+      [CORE_CAP, SUBMISSION_CAP],
+    );
+    return (resp?.[1] as { list?: JmapIdentity[] } | undefined)?.list ?? [];
+  }
+
+  /**
+   * Compose + submit in one batch: create a draft, submit it, and on success
+   * move it Drafts→Sent. Stalwart / Rspamd-out signs DKIM (`soura`) on the way
+   * out — the webmail never touches signing.
+   */
+  async sendEmail(msg: SendEmailInput, accountId?: string): Promise<{ emailId: string }> {
+    const acc = accountId ?? (await this.accountId());
+    const identities = await this.getIdentities(acc);
+    const identity =
+      identities.find((i) => i.email.toLowerCase() === msg.from.toLowerCase()) ?? identities[0];
+    if (!identity) throw new JmapError('JMAP: no submission identity for this mailbox');
+
+    const onSuccess: Record<string, unknown> = {
+      [`mailboxIds/${msg.draftsMailboxId}`]: null,
+      'keywords/$draft': null,
+    };
+    if (msg.sentMailboxId) onSuccess[`mailboxIds/${msg.sentMailboxId}`] = true;
+
+    const responses = await this.request(
+      [
+        [
+          'Email/set',
+          {
+            accountId: acc,
+            create: {
+              draft: {
+                mailboxIds: { [msg.draftsMailboxId]: true },
+                keywords: { $draft: true, $seen: true },
+                from: [{ email: msg.from, name: msg.fromName }],
+                to: msg.to.map((email) => ({ email })),
+                ...(msg.cc?.length ? { cc: msg.cc.map((email) => ({ email })) } : {}),
+                subject: msg.subject,
+                ...(msg.inReplyTo ? { inReplyTo: [msg.inReplyTo] } : {}),
+                bodyStructure: { type: 'text/plain', partId: 'body' },
+                bodyValues: { body: { value: msg.text } },
+              },
+            },
+          },
+          '0',
+        ],
+        [
+          'EmailSubmission/set',
+          {
+            accountId: acc,
+            create: { sub: { emailId: '#draft', identityId: identity.id } },
+            onSuccessUpdateEmail: { '#sub': onSuccess },
+          },
+          '1',
+        ],
+      ],
+      [CORE_CAP, MAIL_CAP, SUBMISSION_CAP],
+    );
+
+    const set = responses.find((r) => r[2] === '0')?.[1] as
+      | { created?: Record<string, { id: string }>; notCreated?: Record<string, unknown> }
+      | undefined;
+    const sub = responses.find((r) => r[2] === '1')?.[1] as
+      | { notCreated?: Record<string, unknown> }
+      | undefined;
+    if (set?.notCreated && Object.keys(set.notCreated).length) {
+      throw new JmapError(`Email/set failed: ${JSON.stringify(set.notCreated)}`);
+    }
+    if (sub?.notCreated && Object.keys(sub.notCreated).length) {
+      throw new JmapError(`EmailSubmission/set failed: ${JSON.stringify(sub.notCreated)}`);
+    }
+    return { emailId: set?.created?.draft?.id ?? '' };
+  }
+}
+
+export interface JmapIdentity {
+  id: string;
+  name: string;
+  email: string;
+  replyTo?: JmapEmailAddress[] | null;
+}
+
+export interface SendEmailInput {
+  from: string;
+  fromName?: string;
+  to: string[];
+  cc?: string[];
+  subject: string;
+  text: string;
+  draftsMailboxId: string;
+  sentMailboxId?: string;
+  /** RFC Message-ID of the message being replied to. */
+  inReplyTo?: string;
 }
 
 /** Basic auth header from a mailbox address + secret. */
