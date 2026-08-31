@@ -164,27 +164,25 @@ Je ne peux pas m'authentifier à ta place. Tape-les avec le préfixe `!` dans ce
 #   projet : SOURAMAIL  (winter-silence-61658608) — org MAIL (org-nameless-lab-20356794)
 ```
 
-### Bring-up de la DB Neon (je n'ai pas d'accès réseau sortant vers Neon → à faire toi-même)
+### Bring-up de la DB Neon — ✅ FAIT (2026-08-31)
 
-Config déjà en place : `.env.staging`, `infra/neon/setup.sql`, `migrate.ts` lit `DIRECT_URL`.
+Provisionné par `packages/db/src/neon-bringup.ts` (tourne sur le driver HTTP de Neon,
+port 443) : rôle `souramail_app` créé (no superuser / no BYPASSRLS), schéma migré,
+policies RLS appliquées, **isolation multi-tenant vérifiée contre la vraie DB**.
+
+Pour rejouer (ex. après rotation du mot de passe `neondb_owner`) :
 
 ```bash
-# 1. Choisis un mot de passe pour le rôle applicatif, mets-le dans infra/neon/setup.sql
-#    (remplace REPLACE_ME) ET dans .env.staging (DATABASE_URL, <APP_DB_PASSWORD>).
-
-# 2. Crée le rôle restreint sur Neon (connexion DIRECT, en tant que neondb_owner) :
-! psql "postgresql://neondb_owner:npg_TQGsDVj5iag0@ep-damp-pond-aycl83jv.c-5.us-east-2.aws.neon.tech/neondb?sslmode=require" -f infra/neon/setup.sql
-#    (si "permission denied to create role" → crée-le via  ! neon roles create --name souramail_app  puis relance le script)
-
-# 3. Applique le schéma + les policies RLS sur Neon :
-! bash -c 'set -a; . ./.env.staging; set +a; pnpm --filter @souramail/db migrate'
-
-# 4. Vérifie l'isolation contre Neon :
-! bash -c 'set -a; . ./.env.staging; set +a; TEST_OWNER_DATABASE_URL="$DIRECT_URL" pnpm --filter @souramail/db test'
+! bash -c 'set -a; . ./.env; set +a; NEON_PROJECT_ID=winter-silence-61658608 \
+    node --experimental-strip-types packages/db/src/neon-bringup.ts'
 ```
 
+Le script relit `NEON_API_KEY` dans `.env`, récupère les URLs de connexion via l'API
+Neon, et réimprime les lignes `DATABASE_URL` / `DIRECT_URL` à coller dans `.env.staging`.
+
 - **Neon Auth** (`...neonauth...`) : non utilisé — on est sur Better Auth.
-- **Rotation** : régénère le mot de passe `neondb_owner` (Neon → Roles) après le bring-up ;
-  mets à jour `DIRECT_URL` dans `.env.staging` et dans les secrets Vercel.
-- Ces valeurs iront ensuite dans **Vercel → Project → Settings → Environment Variables**
-  (Production/Preview) : `DATABASE_URL`, `DIRECT_URL`, `BETTER_AUTH_*`.
+- **Rotation** (à faire) : le mot de passe `neondb_owner` a transité en clair → régénère-le
+  (Neon → Roles), relance le script ci-dessus, il régénère `.env.staging`.
+- Ces valeurs vont dans **Vercel → souramail → Settings → Environment Variables**
+  (Production + Preview) : `DATABASE_URL`, `BETTER_AUTH_URL`, `BETTER_AUTH_SECRET`,
+  `BETTER_AUTH_API_KEY`. (`DIRECT_URL` seulement si tu migres depuis la CI.)
