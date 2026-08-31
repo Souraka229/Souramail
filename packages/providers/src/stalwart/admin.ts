@@ -27,7 +27,10 @@ export interface CreateMailboxInput {
 export class StalwartAdmin {
   private readonly auth: string;
   constructor(private readonly cfg: StalwartAdminConfig) {
-    this.auth = `Basic ${Buffer.from(`${cfg.adminUser}:${cfg.adminSecret}`).toString('base64')}`;
+    // Stalwart's management API accepts the fallback-admin secret as a bearer
+    // credential (v0.11+); `adminUser` is retained in config for older setups.
+    // Container-internal HTTP — front the admin port with TLS when exposed.
+    this.auth = `Bearer ${cfg.adminSecret}`;
   }
 
   private async req<T = unknown>(method: string, path: string, body?: unknown): Promise<T> {
