@@ -95,3 +95,25 @@ export function riskBand(score: number): 'low' | 'medium' | 'high' | 'critical' 
   if (score <= 80) return 'high';
   return 'critical';
 }
+
+// ─── DNS provider fingerprinting (docs/05 §8) ───────────────────────────
+export {
+  DNS_PROVIDER_SIGNATURES,
+  type DnsProviderGuess,
+  detectDnsProviderFromNameservers,
+} from './dns-provider.ts';
+// ─── email onboarding: expected DNS + health score (docs/05 §8) ──────────
+export {
+  DEFAULT_SENDING_CONFIG,
+  type DnsRecordState,
+  type DnsRecordType,
+  type ExpectedDnsRecord,
+  emailHealthScore,
+  expectedDnsRecords,
+  HEALTH_WEIGHTS,
+  type HealthCategory,
+  type HealthResult,
+  healthBand,
+  type ScoredRecord,
+  type SendingConfig,
+} from './email-health.ts';

@@ -1,9 +1,29 @@
 import { dash } from '@better-auth/infra';
-import { getDb, schema } from '@souramail/db';
+import { createWorkspaceWithOwner, getDb, schema } from '@souramail/db';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 
 const { user, session, account, verification } = schema;
+
+/** Derive a first-workspace name from whatever identity we have at sign-up. */
+function workspaceNameFor(u: { name?: string | null; email: string }): string {
+  const fromName = u.name?.trim();
+  if (fromName) return `${fromName}'s workspace`;
+  const local = u.email.split('@')[0] ?? 'my';
+  return `${local}'s workspace`;
+}
+
+/** Same-origin app URLs Better Auth will accept for callbacks / CORS. */
+function trustedOrigins(): string[] {
+  const raw = process.env.BETTER_AUTH_TRUSTED_ORIGINS ?? '';
+  const list = raw
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const base = process.env.BETTER_AUTH_URL;
+  if (base && !list.includes(base)) list.push(base);
+  return list;
+}
 
 /**
  * SouraMAIL auth server (Better Auth + Better Auth Infra).
@@ -30,6 +50,22 @@ function build() {
       schema: { user, session, account, verification },
     }),
     emailAndPassword: { enabled: true },
+    trustedOrigins: trustedOrigins(),
+    databaseHooks: {
+      user: {
+        create: {
+          // After the user row is committed, provision their first workspace +
+          // an `owner` membership. Throwing here surfaces as a failed sign-up,
+          // which is what we want in Phase 0 — a user with no workspace is a bug.
+          after: async (createdUser) => {
+            await createWorkspaceWithOwner({
+              userId: createdUser.id,
+              name: workspaceNameFor(createdUser),
+            });
+          },
+        },
+      },
+    },
     plugins: [dash({ apiKey: process.env.BETTER_AUTH_API_KEY ?? '' })],
   });
 }
