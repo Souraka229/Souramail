@@ -37,9 +37,9 @@ export class S3StorageProvider implements StorageProvider {
 
   private url(key: string): string {
     const k = key.replace(/^\/+/, '');
-    return this.pathStyle
-      ? `${this.base}/${this.bucket}/${k}`
-      : `${this.base.replace('://', `://${this.bucket}.`)}/${k}`;
+    if (this.pathStyle) return `${this.base}/${this.bucket}/${k}`;
+    const vhost = this.base.replace('://', `://${this.bucket}.`);
+    return `${vhost}/${k}`;
   }
 
   async put(key: string, body: Uint8Array | string, contentType?: string): Promise<void> {

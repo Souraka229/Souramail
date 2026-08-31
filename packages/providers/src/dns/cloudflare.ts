@@ -29,19 +29,15 @@ const API = 'https://api.cloudflare.com/client/v4';
  */
 export class CloudflareDnsProvider implements DnsProvider {
   readonly name = 'cloudflare';
-  private zoneCache = new Map<string, string>();
+  private readonly zoneCache = new Map<string, string>();
 
   constructor(private readonly cfg: CloudflareDnsConfig) {}
 
   private async api<T>(path: string, init?: RequestInit): Promise<T> {
-    const res = await fetch(`${API}${path}`, {
-      ...init,
-      headers: {
-        authorization: `Bearer ${this.cfg.apiToken}`,
-        'content-type': 'application/json',
-        ...(init?.headers ?? {}),
-      },
-    });
+    const headers = new Headers(init?.headers);
+    headers.set('authorization', `Bearer ${this.cfg.apiToken}`);
+    if (!headers.has('content-type')) headers.set('content-type', 'application/json');
+    const res = await fetch(`${API}${path}`, { ...init, headers });
     const json = (await res.json()) as { success: boolean; result: T; errors: unknown[] };
     if (!res.ok || !json.success) {
       throw new Error(`Cloudflare ${path} → ${res.status} ${JSON.stringify(json.errors)}`);

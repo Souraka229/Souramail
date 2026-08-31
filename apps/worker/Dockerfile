@@ -11,7 +11,7 @@ COPY packages/db/package.json packages/db/
 COPY packages/core/package.json packages/core/
 COPY packages/contracts/package.json packages/contracts/
 COPY packages/providers/package.json packages/providers/
-RUN pnpm install --frozen-lockfile --filter @souramail/worker...
+RUN pnpm install --frozen-lockfile --ignore-scripts --filter @souramail/worker...
 
 FROM base AS runtime
 ENV NODE_ENV=production

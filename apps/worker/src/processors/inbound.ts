@@ -46,9 +46,8 @@ export async function processInbound(
 
     const subject = parsed.subject ?? null;
     const fromAddr = parsed.from?.value?.[0]?.address ?? 'unknown@unknown';
-    const toAddrs = (parsed.to ? (Array.isArray(parsed.to) ? parsed.to : [parsed.to]) : []).flatMap(
-      (a) => a.value.map((v) => v.address ?? '').filter(Boolean),
-    );
+    const toList = parsed.to ? (Array.isArray(parsed.to) ? parsed.to : [parsed.to]) : [];
+    const toAddrs = toList.flatMap((a) => a.value.map((v) => v.address ?? '').filter(Boolean));
 
     // Thread: naive grouping by normalised subject within the mailbox.
     const normSubject = subject?.replace(/^((re|fwd?|tr)\s*:\s*)+/i, '').trim() ?? null;
