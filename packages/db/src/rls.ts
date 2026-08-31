@@ -32,6 +32,35 @@ export function rlsStatements(): string[] {
     );
   }
 
+  // Bootstrap lookup: resolve a user's workspaces BEFORE any tenant context
+  // exists (login, session hydration). SECURITY DEFINER runs as the function
+  // owner (migration role), so this one narrow, read-only query is exempt from
+  // the RLS policies above. Callers still can't see cross-tenant rows through it
+  // — it only returns memberships for the user id they pass.
+  stmts.push(
+    `create or replace function app_user_workspaces(p_user_id text)
+       returns table (workspace_id uuid, member_role member_role, workspace_name text, workspace_slug text, workspace_plan plan)
+       language sql
+       stable
+       security definer
+       set search_path = public
+     as $fn$
+       select m.tenant_id, m.role, w.name, w.slug, w.plan
+       from membership m
+       join workspace w on w.id = m.tenant_id
+       where m.user_id = p_user_id
+       order by m.created_at asc
+     $fn$`,
+    `revoke all on function app_user_workspaces(text) from public`,
+    `do $grant$
+     begin
+       if exists (select 1 from pg_roles where rolname = 'souramail_app') then
+         execute 'grant execute on function app_user_workspaces(text) to souramail_app';
+       end if;
+     end
+     $grant$`,
+  );
+
   return stmts;
 }
 

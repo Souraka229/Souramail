@@ -54,16 +54,20 @@
 - [x] `packages/auth` : `betterAuth()` + adapter Drizzle ; tables `user/session/account/verification`
       générées dans `packages/db/src/auth-schema.ts` ; migrées + testées.
 - [x] `apps/web` : route handler `/api/auth/[...all]` + `lib/auth-client.ts` (dash + sentinel client).
-- [ ] Pages sign-up / sign-in / sign-out (UI).
-- [ ] MFA (TOTP) — via plugin Better Auth `twoFactor` — obligatoire owner/admin.
-- [ ] Création workspace + `membership` + rôles à l'inscription (hook `after` Better Auth).
-- [ ] Middleware : résout `tenantId` depuis la session → `withTenant`.
-- [ ] **Toi** : régénérer `BETTER_AUTH_API_KEY`, « Connect App » dans le dashboard Infra.
+- [x] Pages **sign-up / sign-in / sign-out** (UI) — `app/(auth)/*`, `app/app/sign-out-button.tsx`.
+- [ ] MFA (TOTP) — via plugin Better Auth `twoFactor` — obligatoire owner/admin. **reporté Phase 4 (durcissement)**.
+- [x] **Création workspace + `membership` (`owner`) à l'inscription** — hook `databaseHooks.user.create.after`
+      → `createWorkspaceWithOwner()` (`packages/db/src/provisioning.ts`), sous RLS via `withTenant` + id workspace généré côté app.
+- [x] **Résolution tenant depuis la session** — `requireAppContext()` (`apps/web/src/lib/session.ts`)
+      + `listUserWorkspaces()` via la fonction SQL `app_user_workspaces` SECURITY DEFINER (bootstrap avant contexte tenant).
+      Middleware `app/*` = garde cookie de session (redirect `/sign-in`).
+- [ ] **Toi** : régénérer `BETTER_AUTH_API_KEY`, « Connect App » dans le dashboard Infra (URL = celle du déploiement).
 
 ### Design system
 - [x] `packages/ui/tokens.ts` (palette produit doc 04, grille 8px, radius, ombres).
-- [ ] Composants de base (Button, Input, Card, Chip) + Storybook/ladle — **TODO**.
-- [ ] Thème clair/sombre.
+- [x] Primitives de base (Button, Input, Select, Field, Card, Callout, Badge) — `apps/web/src/components/ui.tsx`.
+      **À faire** : les remonter dans `packages/ui` (peer `react` + Storybook/ladle).
+- [ ] Thème clair/sombre — **TODO**.
 
 ### Apps (squelettes)
 - [x] `apps/api` : Fastify 5, `/healthz` + `/readyz` (checks PG + Redis) — **boot vérifié** sur :4000.
@@ -78,12 +82,23 @@
 - [ ] Dashboards Grafana squelettes — **TODO**.
 
 ## Definition of Done — Phase 0
-- [x] `pnpm install` · `pnpm typecheck` (10/10) · `pnpm test` (core 5/5, db 4/4) · `pnpm lint` — **verts en local**.
-- [x] `pnpm infra:up` + `pnpm db:generate` + `pnpm db:migrate` — **OK** (migrations + RLS appliquées).
+- [x] `pnpm install` · `pnpm typecheck` (11/11) · `pnpm test` (core 12, db 4+3) · `pnpm lint` — **verts en local**.
+- [x] `pnpm infra:up` + `pnpm db:generate` + `pnpm db:migrate` — **OK** (migrations + RLS + fonction `app_user_workspaces`).
 - [x] Le test d'isolation prouve : A ne voit que A, B que B, sans contexte = 0 ligne, write cross-tenant rejeté.
-- [ ] CI verte sur une PR (les deux jobs) — nécessite `git init` + push (voir 1ʳᵉ case).
-- [ ] Un compte + un workspace créables — **bloqué sur l'auth** (décision en attente).
+- [x] **Provisioning workspace prouvé** — `test/provisioning.test.ts` : inscription → workspace + membership `owner`
+      sous RLS, `listUserWorkspaces` sans contexte tenant, pas de fuite entre users.
+- [x] CI verte sur `main` (repo `github.com/Souraka229/Souramail`, workflow CI, 2 jobs).
+- [x] **Un compte + un workspace créables** — flux sign-up UI → hook `after` → dashboard `/app` qui lit le workspace.
 - [x] `api` boot OK ; `/readyz` = 200 avec postgres + redis up — testé.
+
+## Build & deploy (Phase 0 restant)
+- [x] `apps/web` `next build` vert (9 routes, middleware 34 kB).
+- [x] `vercel.json` : `installCommand pnpm`, build `--filter @souramail/web` — corrige l'échec prod `npm workspace:` protocol.
+- [ ] **Vercel env vars** (Production + Preview) : `DATABASE_URL` (Neon pooled), `BETTER_AUTH_SECRET`,
+      `BETTER_AUTH_API_KEY`, `BETTER_AUTH_URL` = URL du déploiement. Sans ça `/app` et `/api/auth` 500.
+- [ ] Domaine `gala-guema.xyz` : rattaché à **un autre compte Vercel** que `souraka017-8383` — à déplacer
+      vers le projet `souramail` (dashboard « Move domain » ou re-login CLI), puis `BETTER_AUTH_URL` bascule dessus.
+- [ ] Images Docker `api` / `worker` + déploiement conteneur — **TODO** (hors chemin critique webmail).
 
 ## Démarrage rapide (état actuel)
 

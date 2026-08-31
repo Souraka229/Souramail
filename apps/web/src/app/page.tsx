@@ -1,4 +1,6 @@
 import { color, font, layout, space } from '@souramail/ui';
+import Link from 'next/link';
+import { Button } from '@/components/ui';
 
 export default function Home() {
   return (
@@ -21,10 +23,17 @@ export default function Home() {
         <span style={{ color: color.muted }}>Without the infrastructure headache.</span>
       </h1>
       <p style={{ fontSize: 18, color: color.muted, maxWidth: 640 }}>
-        Phase 0 scaffold. Marketing site lands in Phase 3 — see{' '}
-        <code>design/mockups/landing-page-v2.html</code> and{' '}
-        <code>docs/05-roadmap-developpement.md</code>.
+        Connect your domain, get MX / SPF / DKIM / DMARC generated and verified for you, then run
+        mailboxes, rules and an AI copilot on top. The marketing site lands in Phase 3.
       </p>
+      <div style={{ display: 'flex', gap: space.sm, marginTop: space.sm }}>
+        <Link href="/sign-up">
+          <Button>Create an account</Button>
+        </Link>
+        <Link href="/sign-in">
+          <Button variant="secondary">Sign in</Button>
+        </Link>
+      </div>
     </main>
   );
 }
