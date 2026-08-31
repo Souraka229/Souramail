@@ -1,89 +1,22 @@
 /**
- * Abstract provider interfaces. Everything that touches an external system goes
- * through one of these so SouraMAIL can swap managed bricks for self-hosted ones
- * without touching application code (docs/05-roadmap-developpement.md §0, §4.5).
- *
- * Phase 0: interfaces + no-op/dev implementations only.
+ * Provider abstraction layer (docs/05 §0, §4.5). Interfaces + concrete adapters +
+ * an env-driven factory. Application code imports the factory, never a concrete
+ * class, so managed bricks can be swapped for self-hosted ones without touching it.
  */
 
-// ─── EmailProvider ─────────────────────────────────────────────────────────
-export interface OutboundMessage {
-  from: string;
-  to: string[];
-  subject: string;
-  html?: string;
-  text?: string;
-  headers?: Record<string, string>;
-  tenantId: string;
-  idempotencyKey?: string;
-}
-
-export interface SuppressionEntry {
-  address: string;
-  reason: 'bounce' | 'complaint' | 'manual';
-}
-
-export interface DeliveryEvent {
-  providerMessageId: string;
-  type: 'delivered' | 'bounced' | 'complaint' | 'opened' | 'clicked' | 'failed';
-  at: string;
-  raw: unknown;
-}
-
-export interface EmailProvider {
-  readonly name: string;
-  send(msg: OutboundMessage): Promise<{ providerMessageId: string }>;
-  getSuppression?(address: string): Promise<SuppressionEntry | null>;
-  streamEvents?(): AsyncIterable<DeliveryEvent>;
-}
-
-// ─── DnsProvider ───────────────────────────────────────────────────────────
-export interface DnsRecordInput {
-  type: 'MX' | 'TXT' | 'CNAME' | 'A' | 'AAAA';
-  name: string;
-  value: string;
-  ttl?: number;
-  priority?: number;
-}
-
-export interface DnsProvider {
-  readonly name: string;
-  detect(domain: string): Promise<{ provider: string; canAutoConfigure: boolean } | null>;
-  listRecords(domain: string): Promise<DnsRecordInput[]>;
-  createRecords?(domain: string, records: DnsRecordInput[]): Promise<void>;
-}
-
-// ─── LlmProvider (thin client over the AI Gateway) ─────────────────────────
-export interface LlmRequest {
-  tenantId: string;
-  task: string; // 'summarize' | 'draft_reply' | 'classify' | 'compile_rule' | ...
-  model?: string;
-  input: unknown;
-  scope: 'message' | 'thread' | 'selection' | 'mailbox';
-}
-
-export interface LlmProvider {
-  readonly name: string;
-  run<T = unknown>(req: LlmRequest): Promise<{ output: T; costUsd: number; model: string }>;
-}
-
-// ─── StorageProvider (raw MIME + attachments) ─────────────────────────────
-export interface StorageProvider {
-  readonly name: string;
-  put(key: string, body: Uint8Array | string, contentType?: string): Promise<void>;
-  get(key: string): Promise<Uint8Array>;
-  signedUrl(key: string, expiresInSec: number): Promise<string>;
-  delete(key: string): Promise<void>;
-}
-
-// ─── dev no-op implementation ────────────────────────────────────────────
-// A logger is injected by the caller so this package stays runtime-free.
-export function createDevEmailProvider(log: (line: string) => void = () => {}): EmailProvider {
-  return {
-    name: 'dev-noop',
-    async send(msg) {
-      log(`[dev-email] would send to ${msg.to.join(', ')}: ${msg.subject}`);
-      return { providerMessageId: `dev-${Date.now()}` };
-    },
-  };
-}
+export { type CloudflareDnsConfig, CloudflareDnsProvider } from './dns/cloudflare.ts';
+export { createDevEmailProvider } from './email/dev.ts';
+export { type SmtpRelayConfig, SmtpRelayProvider } from './email/smtp-relay.ts';
+export {
+  getDnsProvider,
+  getEmailProvider,
+  getStalwartAdmin,
+  getStorageProvider,
+} from './factory.ts';
+export * from './interfaces.ts';
+export {
+  type CreateMailboxInput,
+  StalwartAdmin,
+  type StalwartAdminConfig,
+} from './stalwart/admin.ts';
+export { type S3Config, S3StorageProvider } from './storage/s3.ts';

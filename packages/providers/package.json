@@ -11,7 +11,13 @@
     "test": "vitest run --passWithNoTests"
   },
   "devDependencies": {
+    "@types/node": "^22.20.1",
+    "@types/nodemailer": "^6.4.24",
     "typescript": "^5.7.3",
     "vitest": "^2.1.8"
+  },
+  "dependencies": {
+    "aws4fetch": "^1.0.20",
+    "nodemailer": "^6.10.1"
   }
 }

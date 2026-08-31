@@ -1,0 +1,163 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# SouraMAIL — Stalwart mail server (docs/05 §1, §4; references/README.md #1)
+#
+# Principle: the mail core is solid and INVISIBLE. Stalwart owns SMTP/IMAP/JMAP/
+# Sieve and mail identity (internal directory). SouraMAIL provisions domains and
+# mailboxes through the management API (packages/providers → StalwartAdmin) and
+# keeps only metadata mirrors in Postgres.
+#
+# Security order is strict (docs/05 §4.1): auth + Rspamd + ClamAV + reputation
+# decide acceptance and spam placement; AI only enriches afterwards.
+#
+# Targets Stalwart v0.11+. Section names occasionally shift across majors — this
+# file is the single place that knows them.
+# ─────────────────────────────────────────────────────────────────────────────
+
+[server]
+hostname = "%{env:MAIL_HOSTNAME}%"      # e.g. mx1.souramail.com — must match PTR
+
+[server.listener.smtp]
+bind = ["[::]:25"]
+protocol = "smtp"
+
+[server.listener.submission]
+bind = ["[::]:587"]
+protocol = "smtp"
+tls.implicit = false
+
+[server.listener.submissions]
+bind = ["[::]:465"]
+protocol = "smtp"
+tls.implicit = true
+
+[server.listener.imap]
+bind = ["[::]:143"]
+protocol = "imap"
+
+[server.listener.imaptls]
+bind = ["[::]:993"]
+protocol = "imap"
+tls.implicit = true
+
+[server.listener.http]
+bind = ["[::]:8080"]
+protocol = "http"          # admin API + JMAP + JMAP-over-WebSocket push
+
+# ─── TLS ────────────────────────────────────────────────────────────────────
+# Dev: Stalwart self-signs. Prod: point these at your ACME/Let's Encrypt certs
+# (or set [acme] to let Stalwart obtain them).
+[certificate.default]
+cert = "%{env:TLS_CERT}%"
+private-key = "%{env:TLS_KEY}%"
+default = true
+
+# ─── Storage ────────────────────────────────────────────────────────────────
+# Mail data (blobs, FTS, metadata) stays in Stalwart's own embedded store —
+# never in the app Postgres (docs/05 §2.1). App Postgres holds only the
+# `mailbox` / `message` metadata mirror that SouraMAIL writes itself.
+[storage]
+data = "rocksdb"
+fts = "rocksdb"
+blob = "rocksdb"
+lookup = "rocksdb"
+directory = "internal"
+
+[store.rocksdb]
+type = "rocksdb"
+path = "/opt/stalwart/data"
+compression = "lz4"
+
+[directory.internal]
+type = "internal"
+store = "rocksdb"
+
+# ─── Resolver ───────────────────────────────────────────────────────────────
+# Local recursive resolver (Unbound). Public resolvers rate-limit RBL/DKIM
+# lookups → Rspamd becomes unreliable (docs/05 §1).
+[resolver]
+type = "system"
+public-suffix = ["https://publicsuffix.org/list/public_suffix_list.dat"]
+nameservers = ["udp://unbound:53"]
+
+# ─── Anti-spam / anti-virus via Rspamd (milter) ─────────────────────────────
+# One Rspamd cluster, two logical roles (docs/05 §1):
+#   inbound  → verify SPF/DKIM/DMARC/ARC, ClamAV, score, greylist
+#   outbound → sign DKIM (selector `soura`), scan, ratelimit
+[spam-filter]
+enable = true
+
+[milter."rspamd"]
+enable = true
+hostname = "rspamd"
+port = 11332
+protocol = "milter"
+options.version = 6
+options.tempfail-on-error = true
+stages = ["data"]
+
+# ─── SMTP inbound policy ────────────────────────────────────────────────────
+[session.rcpt]
+directory = "internal"
+relay = false                       # never an open relay
+max-recipients = 100
+
+[session.data]
+max-messages = 10
+max-message-size = 26214400         # 25 MiB
+
+[session.auth]
+require = [ { if = "listener != 'smtp'", then = true },
+           { else = false } ]
+directory = "internal"
+mechanisms = ["plain", "login"]
+
+[auth.dkim]
+verify = "relaxed"
+
+[auth.spf.verify]
+ehlo = "relaxed"
+mail-from = "relaxed"
+
+[auth.dmarc.verify]
+policy = "relaxed"
+
+[auth.arc.verify]
+policy = "relaxed"
+
+# ─── SMTP outbound (submission → relay) ─────────────────────────────────────
+# Phases 1–4: hand accepted submissions to the managed relay behind
+# EmailProvider (SES + dedicated IP). Return-Path is rewritten for SPF
+# alignment (bounce.souramail.com). Phase 5 swaps this for KumoMTA.
+[queue.outbound]
+hostname = "%{env:MAIL_HOSTNAME}%"
+next-hop = "relay"
+
+[remote."relay"]
+address = "%{env:SMTP_RELAY_HOST}%"
+port = "%{env:SMTP_RELAY_PORT}%"
+protocol = "smtp"
+auth.username = "%{env:SMTP_RELAY_USER}%"
+auth.secret = "%{env:SMTP_RELAY_PASS}%"
+tls.implicit = false
+tls.allow-invalid-certs = false
+
+[queue.outbound.sender]
+# Custom bounce domain, aligned so SPF passes on the Return-Path (docs/05 §4.2).
+return-path = "'bounce@bounce.souramail.com'"
+
+# ─── Management API ─────────────────────────────────────────────────────────
+[authentication.fallback-admin]
+user = "admin"
+secret = "%{env:STALWART_ADMIN_SECRET}%"
+
+# ─── Rate limiting (defence in depth; Rspamd does the heavy lifting) ────────
+[queue.limiter.outbound."per-domain"]
+key = ["rcpt-domain"]
+rate = "100/1m"
+
+# ─── Logging ───────────────────────────────────────────────────────────────
+[tracer.stdout]
+type = "stdout"
+level = "info"
+ansi = false
+enable = true

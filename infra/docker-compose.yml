@@ -101,6 +101,7 @@ services:
     volumes:
       - ./rspamd/local.d:/etc/rspamd/local.d:ro
       - ./.data/rspamd:/var/lib/rspamd
+      - ./.data/dkim:/var/lib/rspamd/dkim   # per-domain <domain>.soura.key files
 
   stalwart:
     image: stalwartlabs/stalwart:latest
@@ -114,6 +115,15 @@ services:
       - "143:143"    # IMAP
       - "993:993"    # IMAPS
       - "8080:8080"  # HTTP: admin + JMAP
+    environment:
+      MAIL_HOSTNAME: "${MAIL_HOSTNAME:-mx1.localhost}"
+      STALWART_ADMIN_SECRET: "${STALWART_ADMIN_SECRET:-change-me-in-prod}"
+      SMTP_RELAY_HOST: "${SMTP_RELAY_HOST:-}"
+      SMTP_RELAY_PORT: "${SMTP_RELAY_PORT:-587}"
+      SMTP_RELAY_USER: "${SMTP_RELAY_USER:-}"
+      SMTP_RELAY_PASS: "${SMTP_RELAY_PASS:-}"
+      TLS_CERT: "${TLS_CERT:-/opt/stalwart/etc/certs/dev.crt}"
+      TLS_KEY: "${TLS_KEY:-/opt/stalwart/etc/certs/dev.key}"
     volumes:
       - ./stalwart/config:/opt/stalwart/etc:ro
       - ./.data/stalwart:/opt/stalwart/data
