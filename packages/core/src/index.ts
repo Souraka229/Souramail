@@ -96,6 +96,8 @@ export function riskBand(score: number): 'low' | 'medium' | 'high' | 'critical' 
   return 'critical';
 }
 
+// ─── secret box (AES-256-GCM) — webmail credential at rest ──────────────
+export { decryptSecret, encryptSecret, generateMailSecretKey } from './crypto.ts';
 // ─── DNS provider fingerprinting (docs/05 §8) ───────────────────────────
 export {
   DNS_PROVIDER_SIGNATURES,

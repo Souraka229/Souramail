@@ -62,7 +62,11 @@ export class SmtpRelayProvider implements EmailProvider {
         };
 
     const info = await this.tx.sendMail(mail);
-    return { providerMessageId: info.messageId };
+    // SES SMTP returns the SES message id in the SMTP response ("250 Ok <id>") —
+    // that's what bounce/complaint notifications reference, not the RFC
+    // Message-ID header. Prefer it; fall back to the header for other relays.
+    const sesId = /(?:\bOk\b|queued as)\s+([A-Za-z0-9._-]{12,})/i.exec(info.response ?? '')?.[1];
+    return { providerMessageId: sesId ?? info.messageId };
   }
 
   async verify(): Promise<boolean> {

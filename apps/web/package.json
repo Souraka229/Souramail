@@ -15,6 +15,7 @@
     "@souramail/auth": "workspace:*",
     "@souramail/core": "workspace:*",
     "@souramail/db": "workspace:*",
+    "@souramail/jmap": "workspace:*",
     "@souramail/providers": "workspace:*",
     "@souramail/ui": "workspace:*",
     "better-auth": "^1.7.2",

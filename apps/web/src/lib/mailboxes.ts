@@ -1,6 +1,6 @@
 // Server-only: mailbox provisioning (docs/05 §4, Phase 1).
 import { randomBytes } from 'node:crypto';
-import { PLAN_LIMITS, type Plan } from '@souramail/core';
+import { encryptSecret, PLAN_LIMITS, type Plan } from '@souramail/core';
 import {
   countMailboxes,
   getDb,
@@ -73,8 +73,14 @@ export async function provisionMailbox(opts: {
     }
   }
 
+  // Two app passwords: `password` is shown to the user once (external IMAP/SMTP
+  // clients) and never stored; `webmailSecret` is stored encrypted and used by
+  // the JMAP proxy (docs/05 §7).
   const password = randomBytes(18).toString('base64url');
+  const webmailSecret = randomBytes(18).toString('base64url');
   const quotaBytes = limits.mailboxBytes;
+  const keyB64 = process.env.MAIL_SECRET_KEY;
+  const webmailSecretEnc = keyB64 ? encryptSecret(webmailSecret, keyB64) : undefined;
 
   // Best-effort Stalwart provisioning. If the mail server isn't wired yet (dev,
   // or before infra/DEPLOY.md is done) we still record the mailbox — a reconcile
@@ -86,7 +92,11 @@ export async function provisionMailbox(opts: {
     await admin.createDomain(name ?? dom.name).catch(() => {
       /* already registered — fine */
     });
-    await admin.createMailbox({ address, secret: password, quotaBytes });
+    await admin.createMailbox({
+      address,
+      secret: webmailSecretEnc ? [password, webmailSecret] : password,
+      quotaBytes,
+    });
     stalwart = 'provisioned';
   } catch (err) {
     if (
@@ -105,6 +115,7 @@ export async function provisionMailbox(opts: {
     domainId: opts.domainId,
     address,
     quotaBytes,
+    webmailSecretEnc,
   });
 
   const [row] = await listMailboxes(opts.tenantId, opts.domainId).then((rows) =>

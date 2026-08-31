@@ -2,6 +2,7 @@ import { createPool } from '@souramail/db';
 import Fastify from 'fastify';
 import { Redis } from 'ioredis';
 import { closeQueues } from './queues.ts';
+import { registerSesWebhook } from './routes/ses-webhook.ts';
 import { registerStalwartHook } from './routes/stalwart-hook.ts';
 
 // NOTE: Better Auth is served by the Next.js app (`apps/web`, /api/auth/*), matching
@@ -39,6 +40,8 @@ app.get('/readyz', async (_req, reply) => {
 
 // Stalwart MTA hook → enqueue inbound-process (docs/05 §4.1).
 registerStalwartHook(app);
+// SES → SNS delivery events (bounce / complaint / delivery) (docs/05 §4.2).
+registerSesWebhook(app);
 
 // v1 API surface is built in Phase 2 (see docs/05 §6).
 app.get('/v1', async () => ({ version: 'v1', status: 'not-implemented-yet' }));

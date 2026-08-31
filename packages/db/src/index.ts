@@ -1,9 +1,19 @@
 export { createDb, createPool, type Db, getDb, getPool } from './client.ts';
 export {
+  type ApplyDeliveryEventInput,
+  applyDeliveryEvent,
+  type DeliveryEventType,
+  filterSuppressed,
+  isSuppressed,
+  type OutboundJobRef,
+  resolveOutboundJobByProviderMsg,
+} from './deliverability.ts';
+export {
   type CreateMailboxRow,
   countMailboxes,
   deleteMailbox,
   insertMailbox,
+  listAllMailboxes,
   listMailboxes,
   type MailboxRow,
   type ResolvedMailbox,
