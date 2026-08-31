@@ -104,6 +104,14 @@ export {
   type DnsProviderGuess,
   detectDnsProviderFromNameservers,
 } from './dns-provider.ts';
+// ─── owned domain vs platform subdomain (docs/05 Phase 3) ───────────────
+export {
+  classifyDomain,
+  type DomainKind,
+  PLATFORM_SUBDOMAINS,
+  type PlatformSubdomain,
+  platformDomainMessage,
+} from './domain-kind.ts';
 // ─── email onboarding: expected DNS + health score (docs/05 §8) ──────────
 export {
   DEFAULT_SENDING_CONFIG,
