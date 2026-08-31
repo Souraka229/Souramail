@@ -1,5 +1,15 @@
 export { createDb, createPool, type Db, getDb, getPool } from './client.ts';
 export {
+  type CreateMailboxRow,
+  countMailboxes,
+  deleteMailbox,
+  insertMailbox,
+  listMailboxes,
+  type MailboxRow,
+  type ResolvedMailbox,
+  resolveMailboxByAddress,
+} from './mailbox.ts';
+export {
   getDefaultWorkspace,
   listUserWorkspaces,
   type MemberRole,

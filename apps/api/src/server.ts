@@ -1,6 +1,8 @@
 import { createPool } from '@souramail/db';
 import Fastify from 'fastify';
 import { Redis } from 'ioredis';
+import { closeQueues } from './queues.ts';
+import { registerStalwartHook } from './routes/stalwart-hook.ts';
 
 // NOTE: Better Auth is served by the Next.js app (`apps/web`, /api/auth/*), matching
 // the Better Auth Infra dashboard config (baseURL = the web app). This Fastify API
@@ -35,6 +37,9 @@ app.get('/readyz', async (_req, reply) => {
   return reply.code(ready ? 200 : 503).send({ ready, checks });
 });
 
+// Stalwart MTA hook → enqueue inbound-process (docs/05 §4.1).
+registerStalwartHook(app);
+
 // v1 API surface is built in Phase 2 (see docs/05 §6).
 app.get('/v1', async () => ({ version: 'v1', status: 'not-implemented-yet' }));
 
@@ -50,6 +55,7 @@ app
 for (const sig of ['SIGINT', 'SIGTERM'] as const) {
   process.on(sig, async () => {
     await app.close();
+    await closeQueues();
     await pool.end();
     redis.disconnect();
     process.exit(0);

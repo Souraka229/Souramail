@@ -15,6 +15,7 @@
     "@souramail/auth": "workspace:*",
     "@souramail/core": "workspace:*",
     "@souramail/db": "workspace:*",
+    "@souramail/providers": "workspace:*",
     "@souramail/ui": "workspace:*",
     "better-auth": "^1.7.2",
     "drizzle-orm": "^0.38.3",

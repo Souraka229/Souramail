@@ -26,7 +26,7 @@ export async function processInbound(
 ): Promise<{ messageId: string } | { skipped: 'duplicate' }> {
   const { tenantId, mailboxId, rawMimeBase64, spamScore, isSpam } = inboundJob.parse(job.data);
   const raw = Buffer.from(rawMimeBase64, 'base64');
-  const storage = getStorageProvider();
+  const storage = await getStorageProvider();
 
   const parsed = await simpleParser(raw);
   const rfcMessageId = parsed.messageId ?? `no-id-${job.id}`;

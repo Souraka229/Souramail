@@ -145,6 +145,23 @@ tls.allow-invalid-certs = false
 # Custom bounce domain, aligned so SPF passes on the Return-Path (docs/05 §4.2).
 return-path = "'bounce@bounce.souramail.com'"
 
+# ─── MTA hook → SouraMAIL inbound pipeline (docs/05 §4.1) ───────────────────
+# Fires once per accepted message at the `data` stage, AFTER auth + Rspamd +
+# ClamAV + reputation. apps/api resolves recipients to mailboxes and enqueues
+# `inbound-process`; it always replies `accept` (Stalwart already validated
+# recipients — losing mail on a DB blip is worse than a late bounce).
+[session.hook."souramail-inbound"]
+enable = true
+url = "%{env:MTA_HOOK_URL}%"           # e.g. http://api:4000/hooks/stalwart/inbound
+stages = ["data"]
+timeout = "30s"
+options.tempfail-on-error = true
+options.body = true                    # include the full message (base64) in the payload
+options.headers = true
+
+[session.hook."souramail-inbound".headers]
+"Authorization" = "Bearer %{env:MTA_HOOK_SECRET}%"
+
 # ─── Management API ─────────────────────────────────────────────────────────
 [authentication.fallback-admin]
 user = "admin"

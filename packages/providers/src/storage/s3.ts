@@ -43,9 +43,20 @@ export class S3StorageProvider implements StorageProvider {
   }
 
   async put(key: string, body: Uint8Array | string, contentType?: string): Promise<void> {
+    // Copy into a plain ArrayBuffer: it's an unambiguous BodyInit in both Node
+    // (18+) and DOM lib, dodging the Uint8Array<ArrayBufferLike> mismatch when
+    // this package is transpiled inside a DOM-lib consumer (apps/web).
+    let payload: string | ArrayBuffer;
+    if (typeof body === 'string') {
+      payload = body;
+    } else {
+      const ab = new ArrayBuffer(body.byteLength);
+      new Uint8Array(ab).set(body);
+      payload = ab;
+    }
     const res = await this.client.fetch(this.url(key), {
       method: 'PUT',
-      body,
+      body: payload,
       headers: contentType ? { 'content-type': contentType } : undefined,
     });
     if (!res.ok) throw new Error(`S3 put ${key} → ${res.status} ${await res.text()}`);

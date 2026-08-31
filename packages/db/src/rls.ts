@@ -61,6 +61,37 @@ export function rlsStatements(): string[] {
      $grant$`,
   );
 
+  // Bootstrap lookup #2: resolve an inbound recipient address → (tenant, mailbox)
+  // for the Stalwart MTA-hook, which arrives with no tenant context. Same
+  // SECURITY DEFINER pattern — narrow, read-only, keyed on the address passed in.
+  // Aliases resolve to their target mailbox.
+  stmts.push(
+    `create or replace function mailbox_by_address(p_address text)
+       returns table (mailbox_id uuid, tenant_id uuid, mailbox_type mailbox_type, target_mailbox_id uuid)
+       language sql
+       stable
+       security definer
+       set search_path = public
+     as $fn$
+       select
+         coalesce(m.target_mailbox_id, m.id) as mailbox_id,
+         m.tenant_id,
+         m.type,
+         m.target_mailbox_id
+       from mailbox m
+       where lower(m.address) = lower(p_address)
+       limit 1
+     $fn$`,
+    `revoke all on function mailbox_by_address(text) from public`,
+    `do $grant$
+     begin
+       if exists (select 1 from pg_roles where rolname = 'souramail_app') then
+         execute 'grant execute on function mailbox_by_address(text) to souramail_app';
+       end if;
+     end
+     $grant$`,
+  );
+
   return stmts;
 }
 
