@@ -1,12 +1,14 @@
 // Server-only: domain onboarding + DNS scanning for Phase 1 (no mail server yet).
 import { promises as dns } from 'node:dns';
 import {
+  classifyDomain,
   DEFAULT_SENDING_CONFIG,
   type DnsRecordState,
   detectDnsProviderFromNameservers,
   emailHealthScore,
   expectedDnsRecords,
   type HealthResult,
+  platformDomainMessage,
   type ScoredRecord,
 } from '@souramail/core';
 import { getDb, schema, withTenant } from '@souramail/db';
@@ -90,6 +92,11 @@ export class DomainError extends Error {}
 export async function createDomain(tenantId: string, rawName: string): Promise<string> {
   const name = normaliseDomain(rawName);
   if (!name) throw new DomainError('That does not look like a valid domain name.');
+
+  const kind = classifyDomain(name);
+  if (kind.kind !== 'owned') {
+    throw new DomainError(platformDomainMessage(kind.label, name));
+  }
 
   const provider = await detectProvider(name);
   const expected = expectedDnsRecords(name, DEFAULT_SENDING_CONFIG);
