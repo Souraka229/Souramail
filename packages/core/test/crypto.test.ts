@@ -20,8 +20,11 @@ describe('secret box', () => {
   });
 
   it('rejects a tampered token', () => {
-    const token = encryptSecret('x', key).replace(/.$/, (c) => (c === 'A' ? 'B' : 'A'));
-    expect(() => decryptSecret(token, key)).toThrow();
+    const parts = encryptSecret('secret', key).split('.');
+    const ct = Buffer.from(parts[2] as string, 'base64url');
+    ct[0] = (ct[0] as number) ^ 0xff; // flip a ciphertext byte → GCM tag mismatch
+    parts[2] = ct.toString('base64url');
+    expect(() => decryptSecret(parts.join('.'), key)).toThrow();
   });
 
   it('rejects a non-32-byte key', () => {
