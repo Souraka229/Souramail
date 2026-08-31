@@ -1,10 +1,7 @@
 /**
- * Minimal design-system primitives for Phase 0/1 screens, styled from the
- * `@souramail/ui` tokens. These are intentionally small; they graduate into
- * `packages/ui` (with proper variants + Storybook) in the Phase 0 design-system
- * workstream.
+ * Design-system primitives — "Kinetic Infrastructure" (design/tokens/kinetic-infrastructure.md).
+ * 4px default radius, 1px outlines, tonal layering, no heavy shadows.
  */
-import { color, font, radius, shadow, space } from '@souramail/ui';
 import type {
   ButtonHTMLAttributes,
   InputHTMLAttributes,
@@ -17,67 +14,37 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   block?: boolean;
 };
 
-export function Button({ variant = 'primary', block, style, ...rest }: ButtonProps) {
-  const base = {
-    fontFamily: font.sans,
-    fontSize: 14,
-    fontWeight: 600,
-    lineHeight: 1,
-    padding: `${space.sm}px ${space.md}px`,
-    borderRadius: radius.md,
-    cursor: rest.disabled ? 'not-allowed' : 'pointer',
-    opacity: rest.disabled ? 0.6 : 1,
-    width: block ? '100%' : undefined,
-    transition: 'background 120ms ease, border-color 120ms ease',
-  } as const;
+export function Button({
+  variant = 'primary',
+  block = false,
+  className = '',
+  ...rest
+}: ButtonProps) {
+  const base =
+    'inline-flex items-center justify-center gap-sm font-label-md text-label-md rounded-lg px-lg py-sm transition-all duration-150 ease-out disabled:opacity-60 disabled:cursor-not-allowed';
   const skin =
     variant === 'primary'
-      ? { background: color.primary, color: '#fff', border: `1px solid ${color.primary}` }
+      ? 'bg-[#00A48A] text-white hover:bg-[#008f78] shadow-sm'
       : variant === 'secondary'
-        ? {
-            background: color.surface,
-            color: color.foreground,
-            border: `1px solid ${color.border}`,
-          }
-        : { background: 'transparent', color: color.primary, border: '1px solid transparent' };
-  return <button {...rest} style={{ ...base, ...skin, ...style }} />;
+        ? 'bg-surface-container-lowest text-on-surface border border-surface-container-highest hover:bg-surface-container-low'
+        : 'bg-transparent text-primary hover:bg-primary/5';
+  return <button className={`${base} ${skin} ${block ? 'w-full' : ''} ${className}`} {...rest} />;
 }
 
-export function Input({ style, ...rest }: InputHTMLAttributes<HTMLInputElement>) {
+export function Input({ className = '', ...rest }: InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
+      className={`w-full rounded-lg border border-surface-container-highest bg-surface-container-lowest px-md py-sm font-body-sm text-on-surface placeholder:text-outline-variant/70 outline-none transition-all focus:border-[#00A48A] focus:ring-2 focus:ring-[#00A48A]/10 ${className}`}
       {...rest}
-      style={{
-        fontFamily: font.sans,
-        fontSize: 14,
-        padding: `${space.sm}px ${space.md}px`,
-        borderRadius: radius.md,
-        border: `1px solid ${color.border}`,
-        background: color.surface,
-        color: color.foreground,
-        width: '100%',
-        outline: 'none',
-        ...style,
-      }}
     />
   );
 }
 
-export function Select({ style, ...rest }: SelectHTMLAttributes<HTMLSelectElement>) {
+export function Select({ className = '', ...rest }: SelectHTMLAttributes<HTMLSelectElement>) {
   return (
     <select
+      className={`w-full rounded-lg border border-surface-container-highest bg-surface-container-lowest px-md py-sm font-body-sm text-on-surface outline-none transition-all focus:border-[#00A48A] focus:ring-2 focus:ring-[#00A48A]/10 ${className}`}
       {...rest}
-      style={{
-        fontFamily: font.sans,
-        fontSize: 14,
-        padding: `${space.sm}px ${space.md}px`,
-        borderRadius: radius.md,
-        border: `1px solid ${color.border}`,
-        background: color.surface,
-        color: color.foreground,
-        width: '100%',
-        ...style,
-      }}
     />
   );
 }
@@ -93,38 +60,40 @@ export function Field({
 }) {
   return (
     // biome-ignore lint/a11y/noLabelWithoutControl: `children` is always the form control this wraps
-    <label style={{ display: 'flex', flexDirection: 'column', gap: space.xs }}>
-      <span style={{ fontSize: 13, fontWeight: 600, color: color.foreground }}>{label}</span>
+    <label className="flex flex-col gap-xs">
+      <span className="font-label-md text-label-md text-on-surface">{label}</span>
       {children}
-      {hint ? <span style={{ fontSize: 12, color: color.muted }}>{hint}</span> : null}
+      {hint ? <span className="text-[12px] text-on-surface-variant">{hint}</span> : null}
     </label>
   );
 }
 
 export function Card({
   children,
-  style,
-  padding = space.lg,
+  className = '',
+  interactive = false,
 }: {
   children: ReactNode;
-  style?: React.CSSProperties;
-  padding?: number;
+  className?: string;
+  interactive?: boolean;
 }) {
   return (
     <div
-      style={{
-        background: color.surface,
-        border: `1px solid ${color.border}`,
-        borderRadius: radius.md,
-        boxShadow: shadow.sm,
-        padding,
-        ...style,
-      }}
+      className={`rounded-xl border border-surface-container-highest bg-surface-container-lowest p-lg ${
+        interactive ? 'transition-shadow hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)]' : ''
+      } ${className}`}
     >
       {children}
     </div>
   );
 }
+
+const CALLOUT: Record<string, string> = {
+  info: 'bg-secondary-container/40 text-on-secondary-container border-on-secondary-container/20',
+  warning: 'bg-tertiary-container/15 text-on-tertiary-container border-tertiary-container/30',
+  error: 'bg-error-container text-on-error-container border-error/20',
+  success: 'bg-primary/10 text-on-primary-container border-primary/20',
+};
 
 export function Callout({
   tone = 'info',
@@ -133,34 +102,19 @@ export function Callout({
   tone?: 'info' | 'warning' | 'error' | 'success';
   children: ReactNode;
 }) {
-  const bg = {
-    info: '#EFF6FF',
-    warning: '#FFFBEB',
-    error: '#FEF2F2',
-    success: '#ECFDF5',
-  }[tone];
-  const fg = {
-    info: '#1D4ED8',
-    warning: '#B45309',
-    error: color.error,
-    success: '#047857',
-  }[tone];
   return (
-    <div
-      style={{
-        background: bg,
-        color: fg,
-        border: `1px solid ${fg}22`,
-        borderRadius: radius.md,
-        padding: `${space.sm}px ${space.md}px`,
-        fontSize: 13,
-        lineHeight: 1.5,
-      }}
-    >
+    <div className={`rounded-lg border px-md py-sm font-body-sm leading-relaxed ${CALLOUT[tone]}`}>
       {children}
     </div>
   );
 }
+
+const BADGE: Record<string, string> = {
+  neutral: 'bg-surface-container-highest text-on-surface-variant',
+  green: 'bg-primary/10 text-on-primary-container',
+  amber: 'bg-tertiary-container/20 text-on-tertiary-container',
+  red: 'bg-error-container text-on-error-container',
+};
 
 export function Badge({
   children,
@@ -169,23 +123,9 @@ export function Badge({
   children: ReactNode;
   tone?: 'neutral' | 'green' | 'amber' | 'red';
 }) {
-  const map = {
-    neutral: { bg: '#F3F4F6', fg: color.muted },
-    green: { bg: '#ECFDF5', fg: '#047857' },
-    amber: { bg: '#FFFBEB', fg: '#B45309' },
-    red: { bg: '#FEF2F2', fg: color.error },
-  }[tone];
   return (
     <span
-      style={{
-        display: 'inline-block',
-        background: map.bg,
-        color: map.fg,
-        borderRadius: radius.pill,
-        padding: '2px 10px',
-        fontSize: 12,
-        fontWeight: 600,
-      }}
+      className={`inline-flex items-center rounded-pill px-2.5 py-0.5 font-label-sm text-[11px] font-semibold uppercase tracking-wider ${BADGE[tone]}`}
     >
       {children}
     </span>
