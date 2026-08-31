@@ -91,14 +91,24 @@
 - [x] **Un compte + un workspace créables** — flux sign-up UI → hook `after` → dashboard `/app` qui lit le workspace.
 - [x] `api` boot OK ; `/readyz` = 200 avec postgres + redis up — testé.
 
-## Build & deploy (Phase 0 restant)
+## Build & deploy — LIVE ✅
+
+**Production : https://souramail.vercel.app** (projet Vercel `souramail` sous le compte `sourakas-projects`).
+
 - [x] `apps/web` `next build` vert (9 routes, middleware 34 kB).
 - [x] `vercel.json` : `installCommand pnpm`, build `--filter @souramail/web` — corrige l'échec prod `npm workspace:` protocol.
-- [ ] **Vercel env vars** (Production + Preview) : `DATABASE_URL` (Neon pooled), `BETTER_AUTH_SECRET`,
-      `BETTER_AUTH_API_KEY`, `BETTER_AUTH_URL` = URL du déploiement. Sans ça `/app` et `/api/auth` 500.
-- [ ] Domaine `gala-guema.xyz` : rattaché à **un autre compte Vercel** que `souraka017-8383` — à déplacer
-      vers le projet `souramail` (dashboard « Move domain » ou re-login CLI), puis `BETTER_AUTH_URL` bascule dessus.
+- [x] **Vercel env vars** (Production) : `DATABASE_URL` (Neon pooled), `BETTER_AUTH_SECRET`,
+      `BETTER_AUTH_API_KEY`, `BETTER_AUTH_URL` + `BETTER_AUTH_TRUSTED_ORIGINS` = `https://souramail.vercel.app`.
+- [x] **Migration Neon appliquée** via `neon-bringup.ts` : migrations `0000`+`0001` (colonne `account.issuer`,
+      Better Auth 1.7 — cf. PR #2), RLS, fonction `app_user_workspaces`. Isolation re-vérifiée.
+- [x] **E2E prod vérifié** : `POST /api/auth/sign-up/email` → 200 + workspace `owner` auto ;
+      `/app` rend le workspace ; `/app/domains` OK ; middleware `/app` sans cookie → 307 `/sign-in`.
+- [ ] Env vars **Preview** (optionnel — pour les déploiements de branche).
+- [ ] Domaine `gala-guema.xyz` : servi par le projet `gala-ceg-5` (même compte `sourakas-projects`).
+      Pour l'utiliser sur SouraMAIL : déplacer le domaine vers le projet `souramail` + repointer `BETTER_AUTH_URL`.
 - [ ] Images Docker `api` / `worker` + déploiement conteneur — **TODO** (hors chemin critique webmail).
+
+> Note : un user de test `e2e1788159007@example.com` a été créé en prod lors de la vérif E2E — à supprimer si besoin.
 
 ## Démarrage rapide (état actuel)
 
