@@ -57,17 +57,29 @@ export interface MailboxRow {
   createdAt: Date;
 }
 
+// Explicit column list — never `select()` the whole row, so `webmail_secret_enc`
+// stays server-internal and adding columns can't break these reads.
+const rowCols = {
+  id: mailbox.id,
+  domainId: mailbox.domainId,
+  address: mailbox.address,
+  type: mailbox.type,
+  targetMailboxId: mailbox.targetMailboxId,
+  quotaBytes: mailbox.quotaBytes,
+  createdAt: mailbox.createdAt,
+} as const;
+
 export async function listMailboxes(tenantId: string, domainId: string): Promise<MailboxRow[]> {
   return withTenant(getDb(), tenantId, (tx) =>
-    tx.select().from(mailbox).where(eq(mailbox.domainId, domainId)).orderBy(mailbox.address),
-  ) as Promise<MailboxRow[]>;
+    tx.select(rowCols).from(mailbox).where(eq(mailbox.domainId, domainId)).orderBy(mailbox.address),
+  );
 }
 
 /** Every mailbox in the workspace, across all domains. */
 export async function listAllMailboxes(tenantId: string): Promise<MailboxRow[]> {
   return withTenant(getDb(), tenantId, (tx) =>
-    tx.select().from(mailbox).orderBy(mailbox.address),
-  ) as Promise<MailboxRow[]>;
+    tx.select(rowCols).from(mailbox).orderBy(mailbox.address),
+  );
 }
 
 export async function countMailboxes(tenantId: string): Promise<number> {
@@ -109,7 +121,9 @@ export async function insertMailbox(input: CreateMailboxRow): Promise<{ id: stri
       type: input.type ?? 'mailbox',
       targetMailboxId: input.targetMailboxId ?? null,
       quotaBytes: input.quotaBytes,
-      webmailSecretEnc: input.webmailSecretEnc ?? null,
+      // Only set when we actually have one — lets the insert work against a DB
+      // that hasn't run migration 0002 yet.
+      ...(input.webmailSecretEnc ? { webmailSecretEnc: input.webmailSecretEnc } : {}),
     });
   });
   return { id };
