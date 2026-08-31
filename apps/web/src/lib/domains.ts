@@ -10,6 +10,7 @@ import {
   type ScoredRecord,
 } from '@souramail/core';
 import { getDb, schema, withTenant } from '@souramail/db';
+import { type DnsRecordInput, getDnsProvider } from '@souramail/providers';
 import { and, eq } from 'drizzle-orm';
 
 const { domain, dnsRecord } = schema;
@@ -164,6 +165,53 @@ export async function scanDomain(tenantId: string, domainId: string): Promise<He
   });
 
   return health;
+}
+
+export interface AutoFixResult {
+  applied: boolean;
+  reason?: string;
+  health?: HealthResult | null;
+}
+
+/**
+ * "Fix automatically" (docs/05 §8, §4.1). If a scoped Cloudflare token is
+ * configured *and* the domain is on Cloudflare, write the expected MX/SPF/DKIM/
+ * DMARC records, then re-scan. Otherwise this is a no-op and the guided
+ * copy/Verify flow stays the path.
+ */
+export async function autoFixDns(tenantId: string, domainId: string): Promise<AutoFixResult> {
+  const found = await getDomainWithRecords(tenantId, domainId);
+  if (!found) return { applied: false, reason: 'not-found' };
+
+  const provider = await getDnsProvider();
+  if (!provider) return { applied: false, reason: 'no-token' };
+
+  const detected = await provider.detect(found.domain.name).catch(() => null);
+  if (!detected?.canAutoConfigure) {
+    return { applied: false, reason: 'provider-not-auto-configurable' };
+  }
+
+  const inputs: DnsRecordInput[] = found.records.map((r) => {
+    if (r.type === 'MX') {
+      const [prio, ...host] = r.expectedValue.split(' ');
+      return {
+        type: 'MX',
+        name: r.name,
+        value: host.join(' ') || r.expectedValue,
+        priority: Number(prio) || 10,
+      };
+    }
+    return { type: r.type as DnsRecordInput['type'], name: r.name, value: r.expectedValue };
+  });
+
+  try {
+    await provider.createRecords?.(found.domain.name, inputs);
+  } catch (err) {
+    return { applied: false, reason: err instanceof Error ? err.message : String(err) };
+  }
+
+  const health = await scanDomain(tenantId, domainId);
+  return { applied: true, health };
 }
 
 // ─── DNS helpers ──────────────────────────────────────────────────────────

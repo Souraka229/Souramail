@@ -78,16 +78,16 @@ describe('CloudflareDnsProvider.createRecords', () => {
 });
 
 describe('provider factory', () => {
-  it('defaults EmailProvider to the dev no-op', () => {
+  it('defaults EmailProvider to the dev no-op', async () => {
     vi.stubEnv('EMAIL_PROVIDER', '');
-    expect(getEmailProvider().name).toBe('dev-noop');
+    expect((await getEmailProvider()).name).toBe('dev-noop');
   });
 
-  it('builds an S3StorageProvider from S3_* env', () => {
+  it('builds an S3StorageProvider from S3_* env', async () => {
     vi.stubEnv('S3_ENDPOINT', 'http://localhost:9000');
     vi.stubEnv('S3_ACCESS_KEY_ID', 'minioadmin');
     vi.stubEnv('S3_SECRET_ACCESS_KEY', 'minioadmin');
-    expect(getStorageProvider().name).toBe('s3');
+    expect((await getStorageProvider()).name).toBe('s3');
   });
 });
 

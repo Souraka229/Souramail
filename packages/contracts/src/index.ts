@@ -66,6 +66,50 @@ export const inboundJob = z.object({
 });
 export type InboundJob = z.infer<typeof inboundJob>;
 
+// ─── Stalwart MTA hook (docs/05 §4.1) ──────────────────────────────────────
+// Stalwart POSTs this at the `data` stage of an accepted inbound message; the
+// api resolves each recipient to a mailbox and enqueues an `inbound-process`
+// job, then replies with an action.
+const mtaHookAddr = z.object({ address: z.string(), parameters: z.record(z.unknown()).optional() });
+
+export const mtaHookRequest = z.object({
+  context: z
+    .object({
+      stage: z.string().optional(),
+      client: z
+        .object({ ip: z.string().optional(), helo: z.string().optional() })
+        .partial()
+        .optional(),
+      sasl: z.object({ login: z.string().optional() }).partial().optional(),
+      queue: z.object({ id: z.string().optional() }).partial().optional(),
+    })
+    .partial()
+    .optional(),
+  envelope: z
+    .object({ from: mtaHookAddr.optional(), to: z.array(mtaHookAddr).default([]) })
+    .optional(),
+  message: z
+    .object({
+      headers: z.array(z.tuple([z.string(), z.string()])).default([]),
+      contents: z.string().default(''), // base64 of the full RFC822
+      size: z.number().optional(),
+    })
+    .optional(),
+});
+export type MtaHookRequest = z.infer<typeof mtaHookRequest>;
+
+export const mtaHookResponse = z.object({
+  action: z.enum(['accept', 'discard', 'reject', 'quarantine']),
+  response: z
+    .object({
+      status: z.number(),
+      enhancedStatus: z.string().optional(),
+      message: z.string().optional(),
+    })
+    .optional(),
+});
+export type MtaHookResponse = z.infer<typeof mtaHookResponse>;
+
 // ─── API key scopes (least privilege) ───────────────────────────────────
 export const apiScopes = [
   'emails:send',

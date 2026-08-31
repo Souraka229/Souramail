@@ -118,6 +118,8 @@ services:
     environment:
       MAIL_HOSTNAME: "${MAIL_HOSTNAME:-mx1.localhost}"
       STALWART_ADMIN_SECRET: "${STALWART_ADMIN_SECRET:-change-me-in-prod}"
+      MTA_HOOK_URL: "${MTA_HOOK_URL:-http://host.docker.internal:4000/hooks/stalwart/inbound}"
+      MTA_HOOK_SECRET: "${MTA_HOOK_SECRET:-dev-mta-hook-secret}"
       SMTP_RELAY_HOST: "${SMTP_RELAY_HOST:-}"
       SMTP_RELAY_PORT: "${SMTP_RELAY_PORT:-587}"
       SMTP_RELAY_USER: "${SMTP_RELAY_USER:-}"

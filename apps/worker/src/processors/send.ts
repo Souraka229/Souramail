@@ -19,7 +19,7 @@ export async function processSend(
   job: Job,
 ): Promise<{ providerMessageId: string } | { skipped: true }> {
   const { tenantId, outboundJobId } = job.data as { tenantId: string; outboundJobId: string };
-  const email = getEmailProvider();
+  const email = await getEmailProvider();
 
   return withTenant(getDb(), tenantId, async (tx) => {
     const [ob] = await tx

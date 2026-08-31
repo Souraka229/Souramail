@@ -3,9 +3,12 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Icon } from '@/components/icon';
 import { getDomainWithRecords } from '@/lib/domains';
+import { listMailboxesForDomain } from '@/lib/mailboxes';
 import { requireAppContext } from '@/lib/session';
 import { scanDomainAction } from '../actions';
 import { CopyField } from './copy-field';
+import { autoFixDnsAction } from './mailbox-actions';
+import { MailboxesCard } from './mailboxes-card';
 
 const STATE_LABEL: Record<'verified' | 'pending' | 'missing', string> = {
   verified: 'Verified',
@@ -24,6 +27,7 @@ export default async function DomainDetailPage({ params }: { params: Promise<{ i
   if (!data) notFound();
 
   const { domain, records } = data;
+  const mailboxes = await listMailboxesForDomain(workspace.workspaceId, id);
   const scored: ScoredRecord[] = records.map((r) => ({
     key: r.key,
     category: categoryOf(r.key),
@@ -127,15 +131,28 @@ export default async function DomainDetailPage({ params }: { params: Promise<{ i
               <h3 className="font-headline-md text-headline-md tracking-tight text-on-surface">
                 DNS Configuration
               </h3>
-              <form action={scanDomainAction}>
-                <input type="hidden" name="id" value={domain.id} />
-                <button
-                  type="submit"
-                  className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 font-label-md text-label-md text-on-primary shadow-sm transition-colors hover:bg-primary/90"
-                >
-                  <Icon name="refresh" className="text-[18px]" /> Verify DNS
-                </button>
-              </form>
+              <div className="flex items-center gap-2">
+                {domain.dnsProvider === 'cloudflare' && domain.status !== 'active' && (
+                  <form action={autoFixDnsAction}>
+                    <input type="hidden" name="domainId" value={domain.id} />
+                    <button
+                      type="submit"
+                      className="flex items-center gap-2 rounded-lg border border-surface-container-highest bg-surface-container px-4 py-2 font-label-md text-label-md text-on-surface transition-colors hover:bg-surface-container-high"
+                    >
+                      <Icon name="auto_fix" className="text-[18px]" /> Fix automatically
+                    </button>
+                  </form>
+                )}
+                <form action={scanDomainAction}>
+                  <input type="hidden" name="id" value={domain.id} />
+                  <button
+                    type="submit"
+                    className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 font-label-md text-label-md text-on-primary shadow-sm transition-colors hover:bg-primary/90"
+                  >
+                    <Icon name="refresh" className="text-[18px]" /> Verify DNS
+                  </button>
+                </form>
+              </div>
             </div>
 
             <div className="flex flex-col gap-3">
@@ -290,6 +307,17 @@ export default async function DomainDetailPage({ params }: { params: Promise<{ i
           </div>
         </div>
       </div>
+
+      <MailboxesCard
+        domainId={domain.id}
+        domainName={domain.name}
+        mailboxes={mailboxes.map((m) => ({
+          id: m.id,
+          address: m.address,
+          type: m.type,
+          quotaBytes: m.quotaBytes,
+        }))}
+      />
     </div>
   );
 }

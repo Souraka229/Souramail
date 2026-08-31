@@ -39,9 +39,20 @@
 3. **Cloudflare** : token `Zone:DNS:Edit` + `Zone:Zone:Read` → `CLOUDFLARE_API_TOKEN` / `ACCOUNT_ID` / `ZONE_ID` ; `terraform apply` pour le socle.
 4. **DKIM réel** : générer la clé par domaine (`StalwartAdmin.createDkim` ou KMS), déposer `<domaine>.soura.key` dans le volume `infra/.data/dkim`, publier le TXT via `CloudflareDnsProvider`.
 
-## Câblage restant (code, une fois le mail joignable)
+## Fait — câblage MTA-hook + provisioning mailbox
 
-- **MTA hook Stalwart → `apps/api`** : endpoint qui reçoit le message accepté + verdict Rspamd et enqueue `inbound-process`.
-- **Provisioning à la création de mailbox** : `apps/web` action → `StalwartAdmin.createMailbox` + `CloudflareDnsProvider.createRecords` + `domain.status = active`.
+| Brique | État | Où |
+| ------ | ---- | -- |
+| **MTA-hook Stalwart → `apps/api`** : `POST /hooks/stalwart/inbound` (bearer `MTA_HOOK_SECRET` timing-safe) → parse payload → verdict Rspamd depuis `X-Spam-Status` / `X-Spamd-Result` → `resolveMailboxByAddress` par destinataire → enqueue `inbound-process` (jobId idempotent `queueId:mailboxId`) → répond `{action:"accept"}` | `apps/api/src/routes/stalwart-hook.ts`, `apps/api/src/queues.ts` |
+| Fonction SQL `mailbox_by_address(text)` SECURITY DEFINER (bootstrap avant contexte tenant ; alias → mailbox cible) | `packages/db/src/rls.ts` + `resolveMailboxByAddress()` | + test `mailbox-lookup.test.ts` |
+| Bloc `[session.hook."souramail-inbound"]` dans la config Stalwart (stage `data`, body base64, header Authorization) + env compose (`MTA_HOOK_URL`/`MTA_HOOK_SECRET`) | `infra/stalwart/config/config.toml`, `infra/docker-compose.yml` | |
+| **Provisioning mailbox** : `provisionMailbox()` → garde plan (`PLAN_LIMITS.addresses`) → mot de passe aléatoire (jamais stocké) → best-effort `StalwartAdmin.createDomain` + `createMailbox` → `insertMailbox` (métadonnée) ; dégrade proprement si serveur mail absent (`skipped-no-server`) | `apps/web/src/lib/mailboxes.ts` |
+| UI **Mailboxes** sur `/app/domains/[id]` : liste + form « hello@domaine », mot de passe affiché une seule fois | `apps/web/src/app/app/domains/[id]/mailboxes-card.tsx` |
+| **« Fix automatically »** : `autoFixDns()` → `getDnsProvider()` (Cloudflare) → `createRecords` idempotent → re-scan ; bouton visible si `dnsProvider === 'cloudflare'` | `apps/web/src/lib/domains.ts`, `[id]/mailbox-actions.ts` |
+
+## Câblage restant (Phase 1 → Phase 2)
+
 - **Bounce/complaint** : ingestion webhook SES / FBL → `delivery_event` → suppression list + réputation.
 - **Webmail JMAP** : client `apps/web` sur `STALWART_JMAP_URL` + push WebSocket.
+- **Reconcile job** : pousser vers Stalwart les mailboxes créées en `skipped-no-server`.
+- **`domain.status = active` sur auto-fix** : déjà géré par `scanDomain` quand tous les enregistrements passent `verified`.

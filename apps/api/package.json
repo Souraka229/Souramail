@@ -13,12 +13,14 @@
     "@souramail/contracts": "workspace:*",
     "@souramail/core": "workspace:*",
     "@souramail/db": "workspace:*",
+    "@souramail/providers": "workspace:*",
+    "bullmq": "^5.81.4",
     "fastify": "^5.2.0",
     "ioredis": "^5.4.2"
   },
   "devDependencies": {
+    "@types/node": "^22.10.5",
     "typescript": "^5.7.3",
-    "vitest": "^2.1.8",
-    "@types/node": "^22.10.5"
+    "vitest": "^2.1.8"
   }
 }
