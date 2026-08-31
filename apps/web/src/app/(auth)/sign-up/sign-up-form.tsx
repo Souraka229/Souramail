@@ -1,6 +1,5 @@
 'use client';
 
-import { color, font, space } from '@souramail/ui';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { type FormEvent, useState } from 'react';
@@ -38,14 +37,12 @@ export function SignUpForm() {
 
   return (
     <Card>
-      <h1 style={{ fontFamily: font.display, fontSize: 24, margin: `0 0 ${space.xs}px` }}>
-        Create your account
-      </h1>
-      <p style={{ color: color.muted, fontSize: 14, margin: `0 0 ${space.lg}px` }}>
+      <h1 className="mb-xs font-headline-md text-[24px] font-semibold">Create your account</h1>
+      <p className="mb-lg text-[14px] text-on-surface-variant">
         A workspace is created for you automatically.
       </p>
 
-      <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: space.md }}>
+      <form onSubmit={onSubmit} className="flex flex-col gap-md">
         <Field label="Name">
           <Input
             value={name}
@@ -82,9 +79,9 @@ export function SignUpForm() {
         </Button>
       </form>
 
-      <p style={{ fontSize: 13, color: color.muted, marginTop: space.lg }}>
+      <p className="mt-lg text-[13px] text-on-surface-variant">
         Already have an account?{' '}
-        <Link href="/sign-in" style={{ color: color.primary, fontWeight: 600 }}>
+        <Link href="/sign-in" className="font-semibold text-primary">
           Sign in
         </Link>
       </p>

@@ -8,6 +8,7 @@
       "!**/.next",
       "!**/.turbo",
       "!**/drizzle",
+      "!**/*.css",
       "!**/.claude",
       "!design",
       "!_archive",

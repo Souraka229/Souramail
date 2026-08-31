@@ -1,34 +1,14 @@
-import { color, font, space } from '@souramail/ui';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { Wordmark } from '@/components/logo';
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <main
-      style={{
-        minHeight: '100dvh',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: space.xl,
-        padding: space.xl,
-        background: color.background,
-      }}
-    >
-      <Link
-        href="/"
-        style={{
-          fontFamily: font.mono,
-          color: color.primary,
-          fontWeight: 600,
-          textDecoration: 'none',
-          fontSize: 18,
-        }}
-      >
-        SouraMAIL
+    <main className="mesh-gradient flex min-h-[100dvh] flex-col items-center justify-center gap-xl bg-surface px-xl py-xl">
+      <Link href="/">
+        <Wordmark />
       </Link>
-      <div style={{ width: '100%', maxWidth: 400 }}>{children}</div>
+      <div className="w-full max-w-[400px]">{children}</div>
     </main>
   );
 }
