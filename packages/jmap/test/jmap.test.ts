@@ -70,6 +70,47 @@ describe('JmapClient', () => {
     expect(sent).toMatchObject({ update: { e1: { 'keywords/$seen': true } } });
   });
 
+  it('sendEmail: Identity/get → Email/set draft → EmailSubmission/set with move-to-Sent', async () => {
+    const batches: unknown[][] = [];
+    const fetchImpl = mockFetch((url, init) => {
+      if (url.endsWith('/jmap')) return SESSION;
+      const req = JSON.parse(String(init?.body)) as {
+        methodCalls: [string, Record<string, unknown>, string][];
+      };
+      batches.push(req.methodCalls);
+      if (req.methodCalls[0]?.[0] === 'Identity/get') {
+        return {
+          methodResponses: [
+            ['Identity/get', { list: [{ id: 'id1', email: 'hello@acme.com' }] }, '0'],
+          ],
+        };
+      }
+      return {
+        methodResponses: [
+          ['Email/set', { created: { draft: { id: 'e9' } } }, '0'],
+          ['EmailSubmission/set', { created: { sub: { id: 's1' } } }, '1'],
+        ],
+      };
+    });
+    const c = new JmapClient('https://mail.test/jmap', 'Basic x', fetchImpl);
+    const { emailId } = await c.sendEmail({
+      from: 'hello@acme.com',
+      to: ['friend@x.com'],
+      subject: 'yo',
+      text: 'hi',
+      draftsMailboxId: 'D',
+      sentMailboxId: 'S',
+    });
+    expect(emailId).toBe('e9');
+    const send = batches[1] as [string, Record<string, unknown>, string][];
+    expect(send[0]?.[0]).toBe('Email/set');
+    expect(send[1]?.[0]).toBe('EmailSubmission/set');
+    expect(send[1]?.[1]).toMatchObject({
+      create: { sub: { emailId: '#draft', identityId: 'id1' } },
+      onSuccessUpdateEmail: { '#sub': { 'mailboxIds/D': null, 'mailboxIds/S': true } },
+    });
+  });
+
   it('throws on a JMAP error response', async () => {
     const fetchImpl = mockFetch((url) =>
       url.endsWith('/jmap')

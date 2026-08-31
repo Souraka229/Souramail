@@ -1,8 +1,10 @@
 // Server-only: webmail data access (docs/05 §7). Bridges a SouraMAIL session to
 // a Stalwart mailbox over JMAP, using the per-mailbox encrypted app password.
-import { decryptSecret } from '@souramail/core';
+import { randomBytes } from 'node:crypto';
+import { decryptSecret, encryptSecret } from '@souramail/core';
 import { getDb, schema, withTenant } from '@souramail/db';
 import { basicAuth, JmapClient } from '@souramail/jmap';
+import { getStalwartAdmin } from '@souramail/providers';
 import { and, eq } from 'drizzle-orm';
 
 const { mailbox } = schema;
@@ -46,13 +48,35 @@ export async function getWebmailClient(
   if (!row) throw new WebmailUnavailable('Mailbox not found in this workspace.');
   if (row.type === 'alias')
     throw new WebmailUnavailable('Aliases have no inbox — open the target mailbox.');
-  if (!row.enc) {
-    throw new WebmailUnavailable(
-      'This mailbox has no webmail credential yet — recreate it once the mail server is connected.',
-    );
+
+  // Self-heal: a mailbox created before the mail server was connected has no
+  // webmail credential. If Stalwart is reachable now, mint one, register it on
+  // the principal, and persist it — the webmail then "just works" from here.
+  let enc = row.enc;
+  if (!enc) {
+    if (!process.env.STALWART_ADMIN_URL) {
+      throw new WebmailUnavailable(
+        'This mailbox has no webmail credential yet — it lands once the mail server is connected.',
+      );
+    }
+    const fresh = randomBytes(18).toString('base64url');
+    try {
+      const admin = await getStalwartAdmin();
+      await admin.addSecret(row.address, fresh);
+    } catch (err) {
+      throw new WebmailUnavailable(
+        `Could not provision a webmail credential: ${err instanceof Error ? err.message : String(err)}`,
+      );
+    }
+    enc = encryptSecret(fresh, keyB64);
+    await withTenant(getDb(), tenantId, (tx) =>
+      tx.update(mailbox).set({ webmailSecretEnc: enc }).where(eq(mailbox.id, mailboxId)),
+    ).catch(() => {
+      /* column may predate migration 0002 — the credential still works now */
+    });
   }
 
-  const secret = decryptSecret(row.enc, keyB64);
+  const secret = decryptSecret(enc, keyB64);
   return {
     address: row.address,
     jmap: new JmapClient(sessionUrl(), basicAuth(row.address, secret)),
