@@ -1,0 +1,1 @@
+ALTER TABLE "mailbox" ADD COLUMN "webmail_secret_enc" text;

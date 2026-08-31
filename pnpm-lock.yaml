@@ -88,6 +88,9 @@ importers:
       '@souramail/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@souramail/jmap':
+        specifier: workspace:*
+        version: link:../../packages/jmap
       '@souramail/providers':
         specifier: workspace:*
         version: link:../../packages/providers
@@ -225,12 +228,15 @@ importers:
         specifier: workspace:*
         version: link:../contracts
     devDependencies:
+      '@types/node':
+        specifier: ^22.20.1
+        version: 22.20.1
       typescript:
         specifier: ^5.7.3
         version: 5.9.3
       vitest:
         specifier: ^2.1.8
-        version: 2.1.9(@types/node@26.4.0)
+        version: 2.1.9(@types/node@22.20.1)
 
   packages/db:
     dependencies:
@@ -256,6 +262,18 @@ importers:
       tsx:
         specifier: ^4.19.2
         version: 4.23.13
+      typescript:
+        specifier: ^5.7.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.20.1)
+
+  packages/jmap:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.5
+        version: 22.20.1
       typescript:
         specifier: ^5.7.3
         version: 5.9.3

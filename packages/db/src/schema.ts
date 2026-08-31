@@ -158,6 +158,9 @@ export const mailbox = pgTable(
     type: mailboxTypeEnum('type').notNull().default('mailbox'),
     targetMailboxId: uuid('target_mailbox_id'),
     quotaBytes: bigint('quota_bytes', { mode: 'number' }).notNull().default(1_073_741_824),
+    // AES-256-GCM box of a webmail-only app password (distinct from the one shown
+    // once to the user). Used by the JMAP proxy; never returned to the client.
+    webmailSecretEnc: text('webmail_secret_enc'),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },

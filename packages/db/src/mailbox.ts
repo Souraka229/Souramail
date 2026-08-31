@@ -63,6 +63,13 @@ export async function listMailboxes(tenantId: string, domainId: string): Promise
   ) as Promise<MailboxRow[]>;
 }
 
+/** Every mailbox in the workspace, across all domains. */
+export async function listAllMailboxes(tenantId: string): Promise<MailboxRow[]> {
+  return withTenant(getDb(), tenantId, (tx) =>
+    tx.select().from(mailbox).orderBy(mailbox.address),
+  ) as Promise<MailboxRow[]>;
+}
+
 export async function countMailboxes(tenantId: string): Promise<number> {
   return withTenant(getDb(), tenantId, async (tx) => {
     const [row] = await tx.select({ n: sql<number>`count(*)::int` }).from(mailbox);
@@ -77,6 +84,8 @@ export interface CreateMailboxRow {
   quotaBytes: number;
   type?: 'mailbox' | 'alias';
   targetMailboxId?: string;
+  /** AES-GCM box of the webmail-only app password (see schema). */
+  webmailSecretEnc?: string;
 }
 
 /** Insert the metadata row. The actual account lives in Stalwart (StalwartAdmin). */
@@ -100,6 +109,7 @@ export async function insertMailbox(input: CreateMailboxRow): Promise<{ id: stri
       type: input.type ?? 'mailbox',
       targetMailboxId: input.targetMailboxId ?? null,
       quotaBytes: input.quotaBytes,
+      webmailSecretEnc: input.webmailSecretEnc ?? null,
     });
   });
   return { id };

@@ -15,6 +15,13 @@
       "when": 1788158313266,
       "tag": "0001_cheerful_network",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788164110489,
+      "tag": "0002_yellow_wallop",
+      "breakpoints": true
     }
   ]
 }

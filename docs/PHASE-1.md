@@ -50,9 +50,22 @@
 | UI **Mailboxes** sur `/app/domains/[id]` : liste + form « hello@domaine », mot de passe affiché une seule fois | `apps/web/src/app/app/domains/[id]/mailboxes-card.tsx` |
 | **« Fix automatically »** : `autoFixDns()` → `getDnsProvider()` (Cloudflare) → `createRecords` idempotent → re-scan ; bouton visible si `dnsProvider === 'cloudflare'` | `apps/web/src/lib/domains.ts`, `[id]/mailbox-actions.ts` |
 
+## Fait — bounce/complaint + webmail JMAP
+
+| Brique | État | Où |
+| ------ | ---- | -- |
+| **Webhook SES→SNS** `POST /webhooks/ses` : **signature SNS vérifiée** (cert allow-listé `*.amazonaws.com`, RSA-SHA1/256) → SubscriptionConfirmation auto → Bounce/Complaint/Delivery | `apps/api/src/routes/ses-webhook.ts` | hard bounce → job `bounced` + suppression + risk +8 ; soft bounce → event seul ; complaint → job `spam` + suppression + risk +15 ; delivery → job `delivered` |
+| Fonction SQL `outbound_job_by_provider_msg(text)` SECURITY DEFINER + `applyDeliveryEvent` / `isSuppressed` / `filterSuppressed` | `packages/db/src/deliverability.ts` + `rls.ts` | test `deliverability.test.ts` |
+| `SmtpRelayProvider` : `providerMessageId` = **id SES** extrait de la réponse SMTP (`250 Ok <id>`), pas le Message-ID header | `providers/src/email/smtp-relay.ts` | (les notifications SES référencent l'id SES) |
+| Worker `send` : **skip des adresses en suppression list** (`filterSuppressed`) ; tout supprimé → job `failed` ; event provisoire « delivered » retiré (vient du webhook) | `apps/worker/src/processors/send.ts` | |
+| **Client JMAP typé** (`session`, `Mailbox/get`, `Email/query`+`Email/get` par back-reference, `Email/set` keywords, `emailText`) | `packages/jmap` | 6 tests |
+| Boîte à secret **AES-256-GCM** (`MAIL_SECRET_KEY`) pour le credential webmail au repos | `packages/core/src/crypto.ts` | 5 tests ; migration `0002` (`mailbox.webmail_secret_enc`) |
+| Provisioning : **2 mots de passe** — celui montré une fois (clients externes) + `webmailSecret` chiffré-stocké (proxy JMAP) ; `StalwartAdmin.createMailbox` accepte un tableau | `apps/web/src/lib/mailboxes.ts` | |
+| **Webmail `/app/inbox`** : sélecteur mailbox + chips dossiers (rôles JMAP) + liste + volet de lecture, `?mailbox&folder&email` ; action `markReadAction` ; états « aucune mailbox » / « serveur mail non joignable » propres | `apps/web/src/app/app/inbox/*`, `apps/web/src/lib/webmail.ts` | |
+
 ## Câblage restant (Phase 1 → Phase 2)
 
-- **Bounce/complaint** : ingestion webhook SES / FBL → `delivery_event` → suppression list + réputation.
-- **Webmail JMAP** : client `apps/web` sur `STALWART_JMAP_URL` + push WebSocket.
-- **Reconcile job** : pousser vers Stalwart les mailboxes créées en `skipped-no-server`.
-- **`domain.status = active` sur auto-fix** : déjà géré par `scanDomain` quand tous les enregistrements passent `verified`.
+- **Push temps réel** : EventSource JMAP (`eventSourceUrl`) → WebSocket vers le client (aujourd'hui : rechargement manuel).
+- **Composer** : envoi depuis le webmail → `Email/set` draft + queue `send`.
+- **Reconcile job** : pousser vers Stalwart les mailboxes créées en `skipped-no-server` + (re)provisionner `webmail_secret_enc` si absent.
+- **`apps/api` déployé** : le webhook SES et le MTA-hook y vivent ; relancer le bring-up Neon pour les 3 fonctions SECURITY DEFINER (`mailbox_by_address`, `outbound_job_by_provider_msg` + migration `0002`).

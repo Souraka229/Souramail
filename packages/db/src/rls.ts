@@ -92,6 +92,31 @@ export function rlsStatements(): string[] {
      $grant$`,
   );
 
+  // Bootstrap lookup #3: resolve a provider message id → (outbound_job, tenant)
+  // for the SES/FBL delivery-event webhook, which arrives with no tenant context.
+  stmts.push(
+    `create or replace function outbound_job_by_provider_msg(p_provider_msg_id text)
+       returns table (outbound_job_id uuid, tenant_id uuid, message_id uuid)
+       language sql
+       stable
+       security definer
+       set search_path = public
+     as $fn$
+       select o.id, o.tenant_id, o.message_id
+       from outbound_job o
+       where o.provider_message_id = p_provider_msg_id
+       limit 1
+     $fn$`,
+    `revoke all on function outbound_job_by_provider_msg(text) from public`,
+    `do $grant$
+     begin
+       if exists (select 1 from pg_roles where rolname = 'souramail_app') then
+         execute 'grant execute on function outbound_job_by_provider_msg(text) to souramail_app';
+       end if;
+     end
+     $grant$`,
+  );
+
   return stmts;
 }
 

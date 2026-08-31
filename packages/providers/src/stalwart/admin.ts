@@ -18,8 +18,12 @@ export interface StalwartAdminConfig {
 
 export interface CreateMailboxInput {
   address: string;
-  /** bcrypt/argon hash or plaintext secret Stalwart will hash. */
-  secret: string;
+  /**
+   * One or more app passwords for the principal. Stalwart hashes them. Pass an
+   * array to register several (e.g. one shown to the user for external clients +
+   * one the webmail proxy uses).
+   */
+  secret: string | string[];
   quotaBytes?: number;
   displayName?: string;
 }
@@ -79,7 +83,7 @@ export class StalwartAdmin {
     await this.req('POST', '/api/principal', {
       type: 'individual',
       name: input.address,
-      secrets: [input.secret],
+      secrets: Array.isArray(input.secret) ? input.secret : [input.secret],
       emails: [input.address],
       ...(input.displayName ? { description: input.displayName } : {}),
       ...(input.quotaBytes ? { quota: input.quotaBytes } : {}),
