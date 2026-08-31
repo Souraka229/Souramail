@@ -158,6 +158,12 @@ export default async function DomainDetailPage({ params }: { params: Promise<{ i
             <div className="flex flex-col gap-3">
               {records.map((r) => {
                 const ok = r.state === 'verified';
+                // MX expectedValue is stored BIND-style ("10 mx1.souramail.com").
+                // Split it so providers with a separate Priority field (Vercel,
+                // Cloudflare, …) get a clean host in the Value box.
+                const mx = r.type === 'MX' ? /^(\d+)\s+(.+)$/.exec(r.expectedValue.trim()) : null;
+                const priority = mx?.[1];
+                const displayValue = mx?.[2] ?? r.expectedValue;
                 return (
                   <div
                     key={r.id}
@@ -209,11 +215,25 @@ export default async function DomainDetailPage({ params }: { params: Promise<{ i
                         </span>
                         <CopyField value={r.name} />
                       </div>
+                      {priority ? (
+                        <div className="flex flex-col gap-1">
+                          <span className="font-label-sm text-[11px] uppercase tracking-wider text-outline">
+                            Priority
+                          </span>
+                          <CopyField value={priority} />
+                        </div>
+                      ) : null}
                       <div className="flex flex-col gap-1">
                         <span className="font-label-sm text-[11px] uppercase tracking-wider text-outline">
                           Value
                         </span>
-                        <CopyField value={r.expectedValue} />
+                        <CopyField value={displayValue} />
+                        {priority ? (
+                          <span className="text-[11px] text-on-surface-variant">
+                            Providers with no separate priority field (some panels) want{' '}
+                            <code className="font-mono">{r.expectedValue}</code> in one line.
+                          </span>
+                        ) : null}
                       </div>
                       {r.observedValue && !ok ? (
                         <p className="break-all font-mono text-[12px] text-on-surface-variant">
