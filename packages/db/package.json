@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4",
+    "@souramail/core": "workspace:*",
     "drizzle-orm": "^0.38.3",
     "pg": "^8.13.1"
   },

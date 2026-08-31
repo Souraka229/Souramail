@@ -92,6 +92,32 @@ export function rlsStatements(): string[] {
      $grant$`,
   );
 
+  // Bootstrap lookup #4: resolve an API key hash → (tenant, scopes) for the
+  // public API, which authenticates with `Authorization: Bearer soura_...` and
+  // has no tenant context until the key is matched.
+  stmts.push(
+    `create or replace function api_key_by_hash(p_hash text)
+       returns table (api_key_id uuid, tenant_id uuid, scopes jsonb, key_name text)
+       language sql
+       stable
+       security definer
+       set search_path = public
+     as $fn$
+       select k.id, k.tenant_id, k.scopes, k.name
+       from api_key k
+       where k.hash = p_hash
+       limit 1
+     $fn$`,
+    `revoke all on function api_key_by_hash(text) from public`,
+    `do $grant$
+     begin
+       if exists (select 1 from pg_roles where rolname = 'souramail_app') then
+         execute 'grant execute on function api_key_by_hash(text) to souramail_app';
+       end if;
+     end
+     $grant$`,
+  );
+
   // Bootstrap lookup #3: resolve a provider message id → (outbound_job, tenant)
   // for the SES/FBL delivery-event webhook, which arrives with no tenant context.
   stmts.push(
