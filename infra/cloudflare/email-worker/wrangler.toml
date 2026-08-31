@@ -10,6 +10,9 @@ name = "souramail-email-inbound"
 main = "src/worker.js"
 compatibility_date = "2026-01-01"
 
+# Email-only worker: no public workers.dev URL, invoked solely by Email Routing.
+workers_dev = false
+
 [vars]
 # Public webhook URL of the deployed web app. Change the host if you move domains.
 INBOUND_WEBHOOK_URL = "https://gala-guema.xyz/api/webhooks/email-inbound"
