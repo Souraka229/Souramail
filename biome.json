@@ -8,6 +8,7 @@
       "!**/.next",
       "!**/.turbo",
       "!**/drizzle",
+      "!**/.claude",
       "!design",
       "!_archive",
       "!pnpm-lock.yaml"

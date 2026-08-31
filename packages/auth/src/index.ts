@@ -1,1 +1,1 @@
-export { type Auth, auth, type Session } from './auth.ts';
+export { type Auth, getAuth, type Session } from './auth.ts';

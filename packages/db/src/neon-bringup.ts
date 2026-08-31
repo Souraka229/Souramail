@@ -29,16 +29,15 @@ function req(k: string): string {
   return v;
 }
 
-async function api(path: string): Promise<any> {
+async function api<T>(path: string): Promise<T> {
   const r = await fetch(`${API}${path}`, { headers: { Authorization: `Bearer ${KEY}` } });
   if (!r.ok) throw new Error(`Neon API ${path} → ${r.status} ${await r.text()}`);
-  return r.json();
+  return r.json() as Promise<T>;
 }
 
 async function uri(role: string, pooled: boolean): Promise<string> {
   const q = `database_name=neondb&role_name=${role}&pooled=${pooled}`;
-  const res = await api(`/projects/${PROJECT}/connection_uri?${q}`);
-  const u: string = res.uri;
+  const { uri: u } = await api<{ uri: string }>(`/projects/${PROJECT}/connection_uri?${q}`);
   return u.includes('sslmode=') ? u : `${u}${u.includes('?') ? '&' : '?'}sslmode=require`;
 }
 
@@ -46,11 +45,11 @@ async function main() {
   console.log(`▸ project ${PROJECT} — fetching owner connection URIs`);
   const ownerDirect = await uri('neondb_owner', false);
   const pooledHost = new URL(await uri('neondb_owner', true)).host;
-  const owner = neon(ownerDirect);
+  const ownerSql = neon(ownerDirect);
 
   console.log('▸ creating / updating restricted role souramail_app');
-  const exists = await owner.query(`select 1 from pg_roles where rolname = 'souramail_app'`);
-  await owner.query(
+  const exists = await ownerSql('select 1 from pg_roles where rolname = $1', ['souramail_app']);
+  await ownerSql(
     exists.length
       ? `alter role souramail_app login password '${APP_PW}'`
       : `create role souramail_app login password '${APP_PW}'`,
@@ -60,11 +59,12 @@ async function main() {
     `alter default privileges in schema public grant select, insert, update, delete on tables to souramail_app`,
     `alter default privileges in schema public grant usage, select on sequences to souramail_app`,
   ]) {
-    await owner.query(s);
+    await ownerSql(s);
   }
 
   console.log('▸ running Drizzle migrations (neon-http)');
-  await migrate(drizzle(owner), { migrationsFolder });
+  const ownerDb = drizzle(ownerSql);
+  await migrate(ownerDb, { migrationsFolder });
 
   console.log('▸ granting on existing objects + applying RLS');
   for (const s of [
@@ -72,42 +72,45 @@ async function main() {
     `grant usage, select on all sequences in schema public to souramail_app`,
     ...rlsStatements(),
   ]) {
-    await owner.query(s);
+    await ownerSql(s);
   }
 
   console.log('▸ verifying tenant isolation as souramail_app');
   const appUri = `postgresql://souramail_app:${APP_PW}@${pooledHost}/neondb?sslmode=require`;
-  const app = neon(appUri);
+  const appSql = neon(appUri);
   const A = randomUUID();
   const B = randomUUID();
 
-  await owner.query(
-    `insert into "workspace" (id,name,slug) values ($1,'A','a-'||$1),($2,'B','b-'||$2)`,
+  await ownerSql(
+    `insert into "workspace" (id,name,slug) values ($1::uuid,'A','a-'||$1::text),($2::uuid,'B','b-'||$2::text)`,
     [A, B],
   );
-  await owner.query(`insert into "domain" (tenant_id,name) values ($1,'a.test'),($2,'b.test')`, [
-    A,
-    B,
-  ]);
+  await ownerSql(
+    `insert into "domain" (tenant_id,name) values ($1::uuid,'a.test'),($2::uuid,'b.test')`,
+    [A, B],
+  );
 
-  // Each HTTP call is its own session → set_config + select must share one transaction.
+  // Neon HTTP is stateless: set_config + select must share one transaction.
   const seeAs = async (tenant: string) => {
-    const [, rows] = await app.transaction([
-      app.query(`select set_config('app.tenant_id', $1, true)`, [tenant]),
-      app.query(`select name from "domain" order by name`),
+    const [, rows] = await appSql.transaction([
+      appSql(`select set_config('app.tenant_id', $1, true)`, [tenant]),
+      appSql(`select name from "domain" order by name`),
     ]);
-    return (rows as { name: string }[]).map((r) => r.name);
+    return rows as { name: string }[];
   };
   const rowsA = await seeAs(A);
   const rowsB = await seeAs(B);
-  const rowsNone = await app.query(`select name from "domain"`); // no tenant context
+  const rowsNone = (await appSql(`select name from "domain"`)) as { name: string }[];
 
-  await owner.query(`delete from "workspace" where id = any($1)`, [[A, B]]);
+  await ownerSql(`delete from "workspace" where id = any($1::uuid[])`, [[A, B]]);
 
   const ok =
-    JSON.stringify(rowsA) === '["a.test"]' &&
-    JSON.stringify(rowsB) === '["b.test"]' &&
-    (rowsNone as unknown[]).length === 0;
+    rowsA.length === 1 &&
+    rowsA[0]?.name === 'a.test' &&
+    rowsB.length === 1 &&
+    rowsB[0]?.name === 'b.test' &&
+    rowsNone.length === 0;
+
   if (!ok) {
     throw new Error(
       `isolation FAILED  A=${JSON.stringify(rowsA)}  B=${JSON.stringify(rowsB)}  none=${JSON.stringify(rowsNone)}`,
