@@ -1,0 +1,65 @@
+/**
+ * Shared types + runtime schemas: webhook events, public API payloads, queue jobs.
+ * One source of truth for `apps/api`, `apps/worker`, `packages/sdk-*`.
+ */
+import { z } from 'zod';
+
+// ─── webhook / domain events ──────────────────────────────────────────────
+export const webhookEventName = z.enum([
+  'email.received',
+  'email.sent',
+  'email.delivered',
+  'email.bounced',
+  'email.spam',
+  'domain.verified',
+  'automation.completed',
+]);
+export type WebhookEventName = z.infer<typeof webhookEventName>;
+
+export const webhookEnvelope = z.object({
+  id: z.string().uuid(),
+  type: webhookEventName,
+  createdAt: z.string().datetime(),
+  tenantId: z.string().uuid(),
+  data: z.record(z.unknown()),
+});
+export type WebhookEnvelope = z.infer<typeof webhookEnvelope>;
+
+// ─── public API: POST /v1/emails ─────────────────────────────────────────
+export const sendEmailRequest = z.object({
+  from: z.string().email(),
+  to: z.array(z.string().email()).min(1).max(50),
+  subject: z.string().min(1).max(998),
+  html: z.string().optional(),
+  text: z.string().optional(),
+  headers: z.record(z.string()).optional(),
+});
+export type SendEmailRequest = z.infer<typeof sendEmailRequest>;
+
+// ─── queue jobs (BullMQ) ────────────────────────────────────────────────
+export const QUEUES = {
+  send: 'send',
+  inboundProcess: 'inbound-process',
+  aiJob: 'ai-job',
+  webhookDeliver: 'webhook-deliver',
+  warmup: 'warmup',
+} as const;
+export type QueueName = (typeof QUEUES)[keyof typeof QUEUES];
+
+export const sendJob = z.object({
+  tenantId: z.string().uuid(),
+  outboundJobId: z.string().uuid(),
+  idempotencyKey: z.string(),
+});
+export type SendJob = z.infer<typeof sendJob>;
+
+// ─── API key scopes (least privilege) ───────────────────────────────────
+export const apiScopes = [
+  'emails:send',
+  'emails:read',
+  'emails:delete',
+  'domains:read',
+  'domains:manage',
+  'webhooks:manage',
+] as const;
+export type ApiScope = (typeof apiScopes)[number];

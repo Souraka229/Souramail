@@ -1,0 +1,445 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}
+/* Custom Grid Background */
+.bg-grid-pattern {
+  background-size: 40px 40px;
+  background-image: linear-gradient(to right, rgba(0, 164, 138, 0.05) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(0, 164, 138, 0.05) 1px, transparent 1px);
+}
+/* Subtle mesh gradient */
+.mesh-gradient {
+  background: radial-gradient(circle at 15% 50%, rgba(0, 164, 138, 0.08), transparent 25%),
+              radial-gradient(circle at 85% 30%, rgba(93, 219, 190, 0.08), transparent 25%);
+}
+/* IDE Code Highlighting */
+.ide-keyword { color: #c678dd; }
+.ide-string { color: #98c379; }
+.ide-function { color: #61afef; }
+.ide-variable { color: #e06c75; }
+.ide-property { color: #d19a66; }
+.ide-comment { color: #5c6370; font-style: italic; }
+.ide-boolean { color: #d19a66; }
+</style><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"tertiary-fixed":"#ffdad3","error-container":"#ffdad6","surface-dim":"#d5dbd8","primary":"#006b59","secondary-fixed":"#beecde","surface-container-lowest":"#ffffff","on-primary-fixed":"#00201a","on-error":"#ffffff","on-secondary-fixed-variant":"#234e44","on-error-container":"#93000a","on-primary-fixed-variant":"#005143","inverse-surface":"#2b322f","inverse-primary":"#5ddbbe","surface-container":"#e9efeb","surface-variant":"#dee4e0","on-surface":"#171d1b","secondary":"#3b665b","on-tertiary-fixed-variant":"#7d2c1b","surface":"#f5fbf7","outline-variant":"#bccac4","on-secondary-fixed":"#00201a","on-background":"#171d1b","surface-container-high":"#e3eae6","outline":"#6d7a75","inverse-on-surface":"#ecf2ee","on-tertiary-container":"#551003","tertiary":"#9b4330","surface-container-low":"#eff5f1","on-primary":"#ffffff","on-tertiary-fixed":"#3d0600","tertiary-fixed-dim":"#ffb4a4","surface-bright":"#f5fbf7","secondary-fixed-dim":"#a2d0c2","surface-container-highest":"#dee4e0","on-secondary":"#ffffff","primary-fixed-dim":"#5ddbbe","error":"#ba1a1a","primary-container":"#00a48a","on-tertiary":"#ffffff","background":"#f5fbf7","secondary-container":"#bbe9db","on-secondary-container":"#406b5f","surface-tint":"#006b59","on-primary-container":"#003128","tertiary-container":"#db745d","primary-fixed":"#7cf8da","on-surface-variant":"#3d4945"},"borderRadius":{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},"spacing":{"sm":"12px","3xl":"64px","xs":"8px","2xl":"48px","md":"16px","lg":"24px","margin":"32px","gutter":"24px","4xl":"96px","xl":"32px"},"fontFamily":{"headline-lg-mobile":["Geist"],"headline-md":["Geist"],"body-md":["Inter"],"headline-xl":["Geist"],"body-sm":["Inter"],"body-lg":["Inter"],"label-sm":["Geist"],"label-md":["Geist"],"headline-lg":["Geist"],"mono":["Geist Mono"]},"fontSize":{"headline-lg-mobile":["28px",{"lineHeight":"36px","fontWeight":"600"}],"headline-md":["24px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"600"}],"body-md":["16px",{"lineHeight":"24px","fontWeight":"400"}],"headline-xl":["48px",{"lineHeight":"56px","letterSpacing":"-0.02em","fontWeight":"600"}],"body-sm":["14px",{"lineHeight":"20px","fontWeight":"400"}],"body-lg":["18px",{"lineHeight":"28px","fontWeight":"400"}],"label-sm":["12px",{"lineHeight":"14px","letterSpacing":"0.03em","fontWeight":"500"}],"label-md":["14px",{"lineHeight":"16px","letterSpacing":"0.02em","fontWeight":"500"}],"headline-lg":["32px",{"lineHeight":"40px","letterSpacing":"-0.02em","fontWeight":"600"}],"mono":["14px",{"lineHeight":"20px","fontWeight":"400"}]}}}}</script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=Inter:wght@100..900&amp;family=Geist+Mono:wght@100..900&amp;display=swap" rel="stylesheet"><link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/aida/AEtjO1VMjKhhpMksnOK20L3AE2VYU1_AesAgftuZhrFpE1oj7vr0d9hIKhhWcE1v6ZgfptW4KdfjFb07jfIyIxSc_bnYeT0sSeC9ESr7X2bbJofjg9DT7Kc6CkEBTPXeNuqc1XQqDzen-OutiBVswBTdnWiSkMBs22pTY0WVXJYinahRMBLnqyTGRtRziMvJvWCN-mryez8aOYdT00jS6_EELDOgbTtxOk9M6eVgKykEGOILkUuP2X1yl31XumRW"></head><body class="bg-surface font-body-md text-body-md text-on-surface"><header class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl border-b border-surface-container-highest/50"><div class="h-16 max-w-7xl mx-auto px-margin flex items-center justify-between"><div class="flex items-center gap-sm"><img alt="SouraMAIL Logo" class="h-8 w-8 object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1VMjKhhpMksnOK20L3AE2VYU1_AesAgftuZhrFpE1oj7vr0d9hIKhhWcE1v6ZgfptW4KdfjFb07jfIyIxSc_bnYeT0sSeC9ESr7X2bbJofjg9DT7Kc6CkEBTPXeNuqc1XQqDzen-OutiBVswBTdnWiSkMBs22pTY0WVXJYinahRMBLnqyTGRtRziMvJvWCN-mryez8aOYdT00jS6_EELDOgbTtxOk9M6eVgKykEGOILkUuP2X1yl31XumRW"><span class="font-headline-md text-[20px] font-bold text-on-surface tracking-tight">SouraMAIL</span></div><nav class="hidden lg:flex items-center gap-lg" data-active-classes="text-primary font-bold"><a aria-current="page" class="transition-colors text-primary font-bold text-[14px]" data-path="product" href="#">Product</a><a class="font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors" data-path="developers" href="#">Developers</a><a class="font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors" data-path="ai" href="#">AI</a><a class="font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors" data-path="pricing" href="#">Pricing</a><a class="font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors" data-path="startups" href="#">Startups</a></nav><div class="flex items-center gap-md"><a class="font-label-md text-label-md text-on-surface-variant hover:text-on-surface px-md py-xs" href="#">Log in</a><button class="bg-[#00A48A] text-white font-label-md text-label-md px-lg py-sm rounded-lg hover:bg-[#008f78] transition-all shadow-sm">Get started free</button></div></div></header><main class="w-full pt-16"><div class="flex flex-col w-full">
+<!-- Hero Section -->
+<section class="w-full pt-4xl pb-3xl px-margin flex flex-col items-center text-center max-w-7xl mx-auto relative z-10 mesh-gradient min-h-[70vh] justify-center bg-grid-pattern">
+<div class="flex flex-col items-center gap-lg max-w-[800px]">
+<div class="flex items-center gap-sm bg-surface-container-lowest border border-[#00A48A]/20 text-on-surface-variant px-md py-xs rounded-full shadow-sm">
+<span class="material-symbols-outlined text-[16px] text-[#00A48A]">bolt</span>
+<span class="font-label-md text-label-md uppercase tracking-wider text-[11px] font-semibold text-[#00A48A]">SouraMAIL API v2.0 is live</span>
+</div>
+<h1 class="font-headline-xl text-[56px] leading-[64px] font-semibold text-on-surface tracking-tight mt-sm">
+        Professional email infrastructure.<br>
+<span class="text-on-surface-variant/70">Without the infrastructure headache.</span>
+</h1>
+<p class="font-body-lg text-[20px] leading-[30px] text-on-surface-variant max-w-[640px] mt-md">
+        Connect your domain, create your first professional email and start sending in minutes. SouraMAIL handles the technical complexity.
+      </p>
+<div class="flex flex-row items-center gap-md mt-xl">
+<button class="bg-[#00A48A] text-white font-label-md text-[15px] px-xl py-md rounded-lg shadow-[0_4px_14px_0_rgba(0,164,138,0.39)] hover:shadow-[0_6px_20px_rgba(0,164,138,0.23)] hover:-translate-y-[1px] transition-all duration-200 flex items-center gap-sm">
+          Start building for free <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+<button class="bg-surface-container-lowest text-on-surface border border-outline-variant/50 font-label-md text-[15px] px-xl py-md rounded-lg shadow-sm hover:bg-surface-container-low hover:border-outline-variant transition-all duration-200">
+          Read the docs
+        </button>
+</div>
+</div>
+</section>
+<!-- Domain Widget Interaction -->
+<section class="w-full px-margin max-w-[800px] mx-auto -mt-3xl relative z-20 pb-4xl">
+<div class="bg-surface-container-lowest rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-surface-container-highest p-2xl flex flex-col items-center justify-center gap-xl min-h-[280px] transition-all relative overflow-hidden ring-1 ring-[#00A48A]/10" id="domain-widget">
+<div class="absolute inset-0 bg-gradient-to-b from-[#00A48A]/[0.02] to-transparent pointer-events-none"></div>
+<!-- State 1: Input -->
+<div class="flex flex-col items-center gap-lg w-full max-w-lg transition-opacity duration-300 relative z-10" id="state-input">
+<h3 class="font-headline-md text-[20px] font-semibold">Connect your domain</h3>
+<div class="flex w-full bg-surface border border-surface-container-highest rounded-xl shadow-sm p-sm focus-within:ring-2 focus-within:ring-[#00A48A]/20 focus-within:border-[#00A48A]/50 transition-all">
+<input autocomplete="off" class="w-full bg-transparent font-mono text-[15px] text-on-surface px-md py-sm outline-none placeholder:text-outline-variant/70" id="domain-input" placeholder="e.g., yourdomain.com" type="text">
+<button class="bg-on-surface text-surface font-label-md text-[14px] px-xl py-sm rounded-lg whitespace-nowrap shadow-sm hover:bg-on-surface/90 transition-all" id="domain-continue">
+            Continue
+          </button>
+</div>
+<p class="text-[13px] text-on-surface-variant flex items-center gap-xs mt-xs"><span class="material-symbols-outlined text-[14px] text-[#00A48A]">verified_user</span> Instant verification. No credit card required.</p>
+</div>
+<!-- State 2: Checking -->
+<div class="hidden flex-col items-center gap-xl w-full max-w-md transition-opacity duration-300 opacity-0 absolute inset-0 m-auto justify-center z-10" id="state-checking">
+<div class="flex flex-col items-center gap-md text-center w-full">
+<span class="font-label-md text-[12px] text-on-surface-variant uppercase tracking-widest font-semibold">Configuring Infrastructure</span>
+<div class="flex flex-col gap-sm w-full mt-md">
+<div class="flex items-center justify-between w-full bg-surface-container-low px-md py-sm rounded-lg border border-surface-container-highest">
+<span class="font-mono text-[14px] text-on-surface flex items-center gap-sm"><span class="material-symbols-outlined text-[16px] text-[#00A48A]">check_circle</span> Resolving DNS</span>
+<span class="font-mono text-[12px] text-on-surface-variant">Done</span>
+</div>
+<div class="flex items-center justify-between w-full bg-surface-container-low px-md py-sm rounded-lg border border-surface-container-highest">
+<span class="font-mono text-[14px] text-on-surface flex items-center gap-sm"><span class="material-symbols-outlined text-[16px] text-[#00A48A]">check_circle</span> Generating SPF &amp; DKIM</span>
+<span class="font-mono text-[12px] text-on-surface-variant">Done</span>
+</div>
+<div class="flex items-center justify-between w-full bg-surface px-md py-sm rounded-lg border border-[#00A48A]/30 ring-1 ring-[#00A48A]/10 shadow-sm relative overflow-hidden">
+<div class="absolute inset-0 bg-[#00A48A]/5 animate-pulse"></div>
+<span class="font-mono text-[14px] text-on-surface flex items-center gap-sm relative z-10"><span class="material-symbols-outlined text-[16px] text-[#00A48A] animate-spin">progress_activity</span> Propagating records</span>
+<span class="font-mono text-[12px] text-[#00A48A] relative z-10 animate-pulse">Waiting...</span>
+</div>
+</div>
+</div>
+</div>
+<!-- State 3: Ready -->
+<div class="hidden flex-col items-center gap-lg w-full max-w-md transition-opacity duration-300 opacity-0 absolute inset-0 m-auto justify-center z-10" id="state-ready">
+<div class="w-16 h-16 rounded-2xl bg-[#00A48A]/10 text-[#00A48A] flex items-center justify-center mb-xs shadow-sm border border-[#00A48A]/20">
+<span class="material-symbols-outlined text-[32px]">mark_email_read</span>
+</div>
+<h3 class="font-headline-md text-[24px] font-semibold text-center">Infrastructure ready</h3>
+<div class="bg-surface-container-low border border-surface-container-highest px-xl py-md rounded-xl shadow-inner w-full text-center">
+<span class="font-mono text-[16px] text-[#00A48A] font-medium">hello@<span id="display-domain" class="">yourdomain.com</span></span>
+</div>
+<button class="bg-[#00A48A] text-white font-label-md text-[14px] px-xl py-md rounded-lg shadow-sm hover:shadow-md mt-sm transition-all flex items-center gap-sm w-full justify-center">
+          Open Developer Dashboard <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Trust Bar -->
+<section class="w-full px-margin pb-4xl flex flex-col items-center gap-xl border-b border-surface-container-highest/50">
+<p class="font-label-md text-[12px] text-on-surface-variant uppercase tracking-widest font-semibold">Trusted by modern engineering teams</p>
+<div class="flex flex-wrap justify-center items-center gap-[4rem] opacity-70 grayscale mix-blend-luminosity">
+<!-- Abstract logos represented textually -->
+<div class="flex items-center gap-xs font-headline-md text-[22px] font-bold"><span class="material-symbols-outlined text-[28px]">change_history</span> Vercel</div>
+<div class="flex items-center gap-xs font-headline-md text-[22px] font-bold"><span class="material-symbols-outlined text-[28px]">api</span> Linear</div>
+<div class="flex items-center gap-xs font-headline-md text-[22px] font-bold"><span class="material-symbols-outlined text-[28px]">code_blocks</span> Stripe</div>
+<div class="flex items-center gap-xs font-headline-md text-[22px] font-bold"><span class="material-symbols-outlined text-[28px]">terminal</span> Raycast</div>
+<div class="flex items-center gap-xs font-headline-md text-[22px] font-bold"><span class="material-symbols-outlined text-[28px]">account_tree</span> GitHub</div>
+</div>
+</section>
+<!-- Features Grid -->
+<section class="w-full max-w-7xl mx-auto px-margin py-4xl flex flex-col gap-3xl">
+<div class="flex flex-col gap-sm text-center max-w-2xl mx-auto mb-xl">
+<h2 class="font-headline-lg text-[36px] leading-[44px] font-semibold text-on-surface">Everything you need to send email.</h2>
+<p class="text-[18px] text-on-surface-variant">A complete developer toolkit designed for modern applications, built on a global edge network.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-xl">
+<!-- Feature 1: API -->
+<div class="bg-surface-container-lowest rounded-2xl border border-surface-container-highest p-xl flex flex-col gap-lg shadow-sm hover:shadow-md transition-shadow">
+<div class="w-12 h-12 rounded-xl bg-surface-container-low border border-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-[24px] text-on-surface">code</span>
+</div>
+<div class="flex flex-col gap-xs">
+<h4 class="font-headline-md text-[18px] font-semibold">RESTful API &amp; SDKs</h4>
+<p class="text-[15px] text-on-surface-variant leading-relaxed">Integrate email sending in seconds with typed SDKs for Node.js, Python, Go, and Ruby.</p>
+</div>
+<div class="mt-auto bg-[#1E1E1E] rounded-lg p-md font-mono text-[12px] text-surface-variant overflow-hidden border border-surface-container-highest/20">
+<div class="flex items-center gap-sm mb-sm opacity-70">
+<div class="w-2 h-2 rounded-full bg-[#ff5f56]"></div>
+<div class="w-2 h-2 rounded-full bg-[#ffbd2e]"></div>
+<div class="w-2 h-2 rounded-full bg-[#27c93f]"></div>
+</div>
+<code>soura.<span class="ide-property">emails</span>.<span class="ide-function">send</span>({<br> <span class="ide-property">to</span>: <span class="ide-string">'user@app.com'</span>,<br> <span class="ide-property">react</span>: <span class="ide-function">Welcome</span>()<br>});</code>
+</div>
+</div>
+<!-- Feature 2: MCP -->
+<div class="bg-surface-container-lowest rounded-2xl border border-surface-container-highest p-xl flex flex-col gap-lg shadow-sm hover:shadow-md transition-shadow">
+<div class="w-12 h-12 rounded-xl bg-surface-container-low border border-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-[24px] text-on-surface">account_tree</span>
+</div>
+<div class="flex flex-col gap-xs">
+<h4 class="font-headline-md text-[18px] font-semibold">Model Context Protocol</h4>
+<p class="text-[15px] text-on-surface-variant leading-relaxed">Give AI agents access to read, search, and draft emails securely via our official MCP server.</p>
+</div>
+<div class="mt-auto bg-surface-container-low rounded-lg p-md border border-surface-container-highest flex items-center justify-between">
+<span class="font-mono text-[13px] font-medium text-on-surface">npx @souramail/mcp</span>
+<button class="bg-surface-container-lowest p-xs rounded border border-surface-container-highest hover:bg-surface transition-colors">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">content_copy</span>
+</button>
+</div>
+</div>
+<!-- Feature 3: AI Copilot -->
+<div class="bg-surface-container-lowest rounded-2xl border border-surface-container-highest p-xl flex flex-col gap-lg shadow-sm hover:shadow-md transition-shadow">
+<div class="w-12 h-12 rounded-xl bg-[#00A48A]/10 border border-[#00A48A]/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-[24px] text-[#00A48A]">auto_awesome</span>
+</div>
+<div class="flex flex-col gap-xs">
+<h4 class="font-headline-md text-[18px] font-semibold">AI Inbox Copilot</h4>
+<p class="text-[15px] text-on-surface-variant leading-relaxed">Built-in AI assistant to summarize threads, draft replies, and extract structured data.</p>
+</div>
+<div class="mt-auto bg-surface-container-low rounded-lg p-md border border-surface-container-highest flex flex-col gap-sm">
+<div class="bg-surface-container-lowest rounded px-sm py-xs border border-surface-container-highest w-[80%] text-[12px] shadow-sm">Summarize this thread</div>
+<div class="bg-[#00A48A]/10 rounded px-sm py-xs border border-[#00A48A]/20 w-[90%] self-end text-[12px] text-[#003128]">Customer is requesting a refund...</div>
+</div>
+</div>
+<!-- Feature 4: Automations -->
+<div class="bg-surface-container-lowest rounded-2xl border border-surface-container-highest p-xl flex flex-col gap-lg shadow-sm hover:shadow-md transition-shadow">
+<div class="w-12 h-12 rounded-xl bg-surface-container-low border border-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-[24px] text-on-surface">schema</span>
+</div>
+<div class="flex flex-col gap-xs">
+<h4 class="font-headline-md text-[18px] font-semibold">Visual Automations</h4>
+<p class="text-[15px] text-on-surface-variant leading-relaxed">Build complex email workflows with a node-based visual editor. No code required.</p>
+</div>
+<div class="mt-auto h-24 bg-surface-container-low rounded-lg border border-surface-container-highest relative overflow-hidden flex items-center justify-center opacity-70">
+<div class="flex items-center gap-xs absolute">
+<div class="w-16 h-8 bg-surface-container-lowest border border-surface-container-highest rounded-md shadow-sm"></div>
+<div class="w-8 h-[2px] bg-outline-variant"></div>
+<div class="w-16 h-8 bg-surface-container-lowest border border-surface-container-highest rounded-md shadow-sm"></div>
+</div>
+</div>
+</div>
+<!-- Feature 5: AI Rules -->
+<div class="bg-surface-container-lowest rounded-2xl border border-surface-container-highest p-xl flex flex-col gap-lg shadow-sm hover:shadow-md transition-shadow">
+<div class="w-12 h-12 rounded-xl bg-surface-container-low border border-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-[24px] text-on-surface">filter_alt</span>
+</div>
+<div class="flex flex-col gap-xs">
+<h4 class="font-headline-md text-[18px] font-semibold">Natural Language Rules</h4>
+<p class="text-[15px] text-on-surface-variant leading-relaxed">Route and label emails by describing what you want in plain English.</p>
+</div>
+<div class="mt-auto bg-surface-container-low rounded-lg p-md border border-surface-container-highest flex flex-col gap-xs">
+<span class="font-mono text-[12px] text-on-surface-variant">If email contains:</span>
+<div class="bg-surface-container-lowest px-sm py-xs rounded border border-surface-container-highest text-[13px]">"Urgent feature request"</div>
+<span class="font-mono text-[12px] text-on-surface-variant">Then:</span>
+<div class="flex gap-xs"><span class="bg-[#ba1a1a]/10 text-[#93000a] text-[11px] px-2 py-0.5 rounded-full font-medium">Add label: P1</span></div>
+</div>
+</div>
+<!-- Feature 6: Deliverability -->
+<div class="bg-surface-container-lowest rounded-2xl border border-surface-container-highest p-xl flex flex-col gap-lg shadow-sm hover:shadow-md transition-shadow">
+<div class="w-12 h-12 rounded-xl bg-surface-container-low border border-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-[24px] text-on-surface">monitoring</span>
+</div>
+<div class="flex flex-col gap-xs">
+<h4 class="font-headline-md text-[18px] font-semibold">Email Health Monitoring</h4>
+<p class="text-[15px] text-on-surface-variant leading-relaxed">Real-time alerts for bounce rates, spam complaints, and domain reputation changes.</p>
+</div>
+<div class="mt-auto bg-surface-container-low rounded-lg p-md border border-surface-container-highest flex items-end gap-sm h-24">
+<div class="flex-1 bg-[#00A48A]/20 rounded-t-sm h-[40%]"></div>
+<div class="flex-1 bg-[#00A48A]/40 rounded-t-sm h-[60%]"></div>
+<div class="flex-1 bg-[#00A48A]/60 rounded-t-sm h-[80%]"></div>
+<div class="flex-1 bg-[#00A48A]/80 rounded-t-sm h-[70%]"></div>
+<div class="flex-1 bg-[#00A48A] rounded-t-sm h-[90%] relative"><div class="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-mono text-[#00A48A] font-bold">99.9%</div></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Developer API Section (Refined) -->
+<section class="w-full bg-[#0a0a0a] text-surface-container-lowest py-4xl mt-xl relative overflow-hidden border-y border-surface-container-highest/10">
+<div class="max-w-7xl mx-auto px-margin flex flex-col gap-3xl relative z-10">
+<div class="flex flex-col md:flex-row justify-between items-end gap-lg">
+<div class="max-w-2xl flex flex-col gap-md">
+<h2 class="font-headline-xl text-[40px] leading-[48px] font-semibold text-white tracking-tight">Built for developers.</h2>
+<p class="font-body-lg text-[18px] text-outline-variant/80">Integrate our robust API in seconds. We handle the deliverability, bounce tracking, and compliance automatically, so you can focus on your product.</p>
+</div>
+<div class="flex gap-md">
+<button class="bg-surface-container-low/10 text-white border border-surface-container-highest/20 font-label-md text-[14px] px-lg py-sm rounded-lg hover:bg-surface-container-low/20 transition-colors">
+          View API Reference
+        </button>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-xl items-start">
+<!-- Code Editor -->
+<div class="col-span-1 lg:col-span-7 bg-[#111111] border border-surface-container-highest/20 rounded-2xl shadow-2xl p-xl flex flex-col font-mono text-[14px] text-surface-variant overflow-hidden">
+<div class="flex items-center gap-md mb-lg border-b border-surface-container-highest/10 pb-md">
+<div class="flex items-center gap-xs">
+<div class="w-3 h-3 rounded-full bg-[#ff5f56]"></div>
+<div class="w-3 h-3 rounded-full bg-[#ffbd2e]"></div>
+<div class="w-3 h-3 rounded-full bg-[#27c93f]"></div>
+</div>
+<div class="flex gap-md text-[13px] opacity-60">
+<span class="text-white border-b border-[#00A48A] pb-1">send-welcome.ts</span>
+<span class="">package.json</span>
+</div>
+</div>
+<pre class="overflow-x-auto leading-relaxed text-[13px]"><code><span class="ide-keyword">import</span> { SouraMail } <span class="ide-keyword">from</span> <span class="ide-string">'@souramail/node'</span>;
+<span class="ide-keyword">import</span> { WelcomeTemplate } <span class="ide-keyword">from</span> <span class="ide-string">'./emails/welcome'</span>;
+
+<span class="ide-keyword">const</span> soura = <span class="ide-keyword">new</span> <span class="ide-function">SouraMail</span>(process.env.SOURA_KEY);
+
+<span class="ide-keyword">export</span> <span class="ide-keyword">async</span> <span class="ide-keyword">function</span> <span class="ide-function">sendWelcomeEmail</span>(user) {
+  <span class="ide-comment">// Send via global edge network with automatic failover</span>
+  <span class="ide-keyword">const</span> response = <span class="ide-keyword">await</span> soura.<span class="ide-property">emails</span>.<span class="ide-function">send</span>({
+    <span class="ide-property">from</span>: <span class="ide-string">'Acme Corp &lt;hello@acme.com&gt;'</span>,
+    <span class="ide-property">to</span>: user.email,
+    <span class="ide-property">subject</span>: <span class="ide-string">'Welcome to the future of email'</span>,
+    <span class="ide-property">react</span>: <span class="ide-function">WelcomeTemplate</span>({ <span class="ide-property">firstName</span>: user.name }),
+    <span class="ide-property">tags</span>: [<span class="ide-string">'onboarding'</span>, <span class="ide-string">'welcome'</span>],
+    <span class="ide-property">trackOpens</span>: <span class="ide-boolean">true</span>
+  });
+
+  <span class="ide-keyword">return</span> response.id;
+}</code></pre>
+</div>
+<!-- Status Panel -->
+<div class="col-span-1 lg:col-span-5 flex flex-col gap-md">
+<div class="bg-[#111111] border border-surface-container-highest/20 rounded-2xl p-xl flex flex-col gap-xl shadow-lg h-full">
+<div class="flex items-center justify-between">
+<h4 class="font-label-md text-[12px] text-outline-variant uppercase tracking-widest font-semibold">Real-time Delivery Logs</h4>
+<div class="w-2 h-2 rounded-full bg-[#00A48A] animate-pulse"></div>
+</div>
+<div class="flex flex-col gap-lg">
+<div class="flex items-start justify-between group">
+<div class="flex items-start gap-md">
+<span class="material-symbols-outlined text-[#00A48A] text-[20px] mt-0.5">check_circle</span>
+<div class="flex flex-col">
+<span class="font-mono text-[14px] text-white">DNS Resolution</span>
+<span class="font-mono text-[12px] text-outline-variant/60">Checking MX &amp; TXT records</span>
+</div>
+</div>
+<span class="font-mono text-[12px] text-outline-variant/60 group-hover:text-[#00A48A] transition-colors">12ms</span>
+</div>
+<div class="flex items-start justify-between group">
+<div class="flex items-start gap-md">
+<span class="material-symbols-outlined text-[#00A48A] text-[20px] mt-0.5">verified_user</span>
+<div class="flex flex-col">
+<span class="font-mono text-[14px] text-white">Authentication</span>
+<span class="font-mono text-[12px] text-outline-variant/60">SPF, DKIM, DMARC PASS</span>
+</div>
+</div>
+<span class="font-mono text-[12px] text-outline-variant/60 group-hover:text-[#00A48A] transition-colors">45ms</span>
+</div>
+<div class="flex items-start justify-between group">
+<div class="flex items-start gap-md">
+<span class="material-symbols-outlined text-[#00A48A] text-[20px] mt-0.5">flight_takeoff</span>
+<div class="flex flex-col">
+<span class="font-mono text-[14px] text-white">Edge Delivery</span>
+<span class="font-mono text-[12px] text-outline-variant/60">Routed via eu-west-1</span>
+</div>
+</div>
+<span class="font-mono text-[12px] text-outline-variant/60 group-hover:text-[#00A48A] transition-colors">112ms</span>
+</div>
+<div class="h-[1px] w-full bg-surface-container-highest/20 my-xs"></div>
+<div class="flex items-center justify-between bg-[#00A48A]/10 p-md rounded-lg border border-[#00A48A]/20">
+<div class="flex items-center gap-sm">
+<div class="w-6 h-6 rounded-full bg-[#00A48A] flex items-center justify-center shadow-[0_0_10px_rgba(0,164,138,0.5)]">
+<span class="material-symbols-outlined text-white text-[14px]">done_all</span>
+</div>
+<span class="font-mono text-[14px] text-[#00A48A] font-bold">Delivered</span>
+</div>
+<span class="font-mono text-[12px] text-[#00A48A]">169ms total</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Pricing Section -->
+<section class="w-full max-w-7xl mx-auto px-margin py-4xl flex flex-col gap-2xl">
+<div class="flex flex-col gap-sm text-center max-w-2xl mx-auto mb-lg">
+<h2 class="font-headline-lg text-[36px] leading-[44px] font-semibold text-on-surface">Simple, transparent pricing.</h2>
+<p class="text-[18px] text-on-surface-variant">Start for free, upgrade when you need more power.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-lg max-w-5xl mx-auto w-full">
+<!-- Free Tier -->
+<div class="bg-surface-container-lowest rounded-2xl border border-surface-container-highest p-2xl flex flex-col shadow-sm">
+<h3 class="font-headline-md text-[20px] font-semibold mb-xs">Free</h3>
+<p class="text-[14px] text-on-surface-variant mb-xl">For developers getting started.</p>
+<div class="flex items-end gap-xs mb-2xl">
+<span class="font-headline-xl text-[48px] font-bold leading-none">€0</span>
+<span class="text-[15px] text-on-surface-variant mb-1">/mo</span>
+</div>
+<ul class="flex flex-col gap-md mb-2xl flex-1">
+<li class="flex items-start gap-sm text-[15px]"><span class="material-symbols-outlined text-[20px] text-[#00A48A]">check</span> 1 domain</li>
+<li class="flex items-start gap-sm text-[15px]"><span class="material-symbols-outlined text-[20px] text-[#00A48A]">check</span> 3 email addresses</li>
+<li class="flex items-start gap-sm text-[15px]"><span class="material-symbols-outlined text-[20px] text-[#00A48A]">check</span> 1 GB / mailbox</li>
+<li class="flex items-start gap-sm text-[15px]"><span class="material-symbols-outlined text-[20px] text-[#00A48A]">check</span> 100 outgoing emails / day</li>
+<li class="flex items-start gap-sm text-[15px]"><span class="material-symbols-outlined text-[20px] text-[#00A48A]">check</span> Webmail, API &amp; AI Copilot</li>
+<li class="flex items-start gap-sm text-[15px]"><span class="material-symbols-outlined text-[20px] text-[#00A48A]">check</span> SPF, DKIM, DMARC &amp; MCP</li>
+</ul>
+<button class="w-full bg-surface-container-low text-on-surface font-label-md text-[14px] px-lg py-md rounded-lg hover:bg-surface-container-high transition-colors border border-surface-container-highest font-medium">Start free</button>
+</div>
+<!-- Pro Tier -->
+<div class="bg-surface-container-lowest rounded-2xl border-2 border-[#00A48A] p-2xl flex flex-col shadow-xl relative transform md:-translate-y-4">
+<div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#00A48A] text-white text-[11px] font-bold uppercase tracking-wider px-sm py-1 rounded-full">Most Popular</div>
+<h3 class="font-headline-md text-[20px] font-semibold mb-xs">Pro</h3>
+<p class="text-[14px] text-on-surface-variant mb-xl">For production applications.</p>
+<div class="flex items-end gap-xs mb-xs">
+<span class="font-headline-xl text-[48px] font-bold leading-none">€7.90</span>
+<span class="text-[15px] text-on-surface-variant mb-1">/mo</span>
+</div>
+<p class="text-[13px] text-on-surface-variant mb-2xl">or €79 / year</p>
+<ul class="flex flex-col gap-md mb-2xl flex-1">
+<li class="flex items-start gap-sm text-[15px] font-medium"><span class="material-symbols-outlined text-[20px] text-[#00A48A]">check</span> Multiple domains &amp; mailboxes</li>
+<li class="flex items-start gap-sm text-[15px]"><span class="material-symbols-outlined text-[20px] text-[#00A48A]">check</span> More storage &amp; higher sending limits</li>
+<li class="flex items-start gap-sm text-[15px]"><span class="material-symbols-outlined text-[20px] text-[#00A48A]">check</span> Advanced AI &amp; automations</li>
+<li class="flex items-start gap-sm text-[15px]"><span class="material-symbols-outlined text-[20px] text-[#00A48A]">check</span> MCP, analytics &amp; API logs</li>
+<li class="flex items-start gap-sm text-[15px]"><span class="material-symbols-outlined text-[20px] text-[#00A48A]">check</span> Priority support</li>
+<li class="flex items-start gap-sm text-[15px]"><span class="material-symbols-outlined text-[20px] text-[#00A48A]">check</span> No SouraMAIL branding</li>
+</ul>
+<button class="w-full bg-[#00A48A] text-white font-label-md text-[14px] px-lg py-md rounded-lg hover:bg-[#008f78] transition-colors shadow-sm font-medium">Start free</button>
+</div>
+<!-- Business Tier -->
+<div class="bg-surface-container-lowest rounded-2xl border border-surface-container-highest p-2xl flex flex-col shadow-sm">
+<h3 class="font-headline-md text-[20px] font-semibold mb-xs">Business</h3>
+<p class="text-[14px] text-on-surface-variant mb-xl">For teams &amp; agencies.</p>
+<div class="flex items-end gap-xs mb-2xl">
+<span class="font-headline-lg text-[28px] font-bold leading-none text-on-surface-variant">Coming soon</span>
+</div>
+<ul class="flex flex-col gap-md mb-2xl flex-1">
+<li class="flex items-start gap-sm text-[15px]"><span class="material-symbols-outlined text-[20px] text-[#00A48A]">check</span> Everything in Pro</li>
+<li class="flex items-start gap-sm text-[15px]"><span class="material-symbols-outlined text-[20px] text-[#00A48A]">check</span> Multiple team members</li>
+<li class="flex items-start gap-sm text-[15px]"><span class="material-symbols-outlined text-[20px] text-[#00A48A]">check</span> Roles &amp; permissions</li>
+<li class="flex items-start gap-sm text-[15px]"><span class="material-symbols-outlined text-[20px] text-[#00A48A]">check</span> Audit logs &amp; team quotas</li>
+<li class="flex items-start gap-sm text-[15px]"><span class="material-symbols-outlined text-[20px] text-[#00A48A]">check</span> SSO &amp; advanced analytics</li>
+</ul>
+<button class="w-full bg-surface-container-low text-on-surface font-label-md text-[14px] px-lg py-md rounded-lg hover:bg-surface-container-high transition-colors border border-surface-container-highest font-medium">Contact sales</button>
+</div>
+</div>
+</section>
+<!-- Final CTA -->
+<section class="w-full px-margin py-4xl flex flex-col items-center justify-center text-center border-t border-surface-container-highest/50 bg-surface-container-lowest">
+<div class="w-16 h-16 bg-surface-container-lowest border border-surface-container-highest rounded-2xl flex items-center justify-center shadow-sm mb-xl">
+<img alt="SouraMAIL Logo" class="w-8 h-8 object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1VMjKhhpMksnOK20L3AE2VYU1_AesAgftuZhrFpE1oj7vr0d9hIKhhWcE1v6ZgfptW4KdfjFb07jfIyIxSc_bnYeT0sSeC9ESr7X2bbJofjg9DT7Kc6CkEBTPXeNuqc1XQqDzen-OutiBVswBTdnWiSkMBs22pTY0WVXJYinahRMBLnqyTGRtRziMvJvWCN-mryez8aOYdT00jS6_EELDOgbTtxOk9M6eVgKykEGOILkUuP2X1yl31XumRW">
+</div>
+<h2 class="font-headline-xl text-[40px] leading-[48px] font-semibold text-on-surface max-w-2xl mb-lg tracking-tight">
+      Ready to upgrade your email infrastructure?
+    </h2>
+<p class="font-body-lg text-[18px] text-on-surface-variant max-w-xl mb-2xl">
+      Join thousands of developers who have stopped worrying about email and started focusing on building great products.
+    </p>
+<div class="flex flex-row items-center gap-md">
+<button class="bg-[#00A48A] text-white font-label-md text-[15px] px-2xl py-md rounded-lg shadow-md hover:shadow-lg hover:-translate-y-[1px] transition-all duration-200 font-medium">
+        Start building for free
+      </button>
+</div>
+</section>
+</div>
+<script>
+  // Simple interactive demo for the Domain Widget
+  document.addEventListener('DOMContentLoaded', () => {
+    const inputState = document.getElementById('state-input');
+    const checkingState = document.getElementById('state-checking');
+    const readyState = document.getElementById('state-ready');
+    const domainInput = document.getElementById('domain-input');
+    const domainContinue = document.getElementById('domain-continue');
+    const displayDomain = document.getElementById('display-domain');
+
+    if(domainContinue) {
+      domainContinue.addEventListener('click', () => {
+        const val = domainInput.value.trim() || 'yourdomain.com';
+        displayDomain.textContent = val;
+        
+        // Hide input
+        inputState.style.opacity = '0';
+        setTimeout(() => {
+          inputState.classList.add('hidden');
+          inputState.classList.remove('flex');
+          
+          // Show checking
+          checkingState.classList.remove('hidden');
+          checkingState.classList.add('flex');
+          setTimeout(() => { checkingState.style.opacity = '1'; }, 50);
+          
+          // Simulate check
+          setTimeout(() => {
+            checkingState.style.opacity = '0';
+            setTimeout(() => {
+              checkingState.classList.add('hidden');
+              checkingState.classList.remove('flex');
+              
+              // Show ready
+              readyState.classList.remove('hidden');
+              readyState.classList.add('flex');
+              setTimeout(() => { readyState.style.opacity = '1'; }, 50);
+            }, 300);
+          }, 2500);
+        }, 300);
+      });
+    }
+  });
+</script></main><footer class="w-full bg-surface-container-lowest border-t border-surface-container-highest pt-4xl pb-xl"><div class="max-w-7xl mx-auto px-margin"><div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-xl mb-3xl"><div class="col-span-2 lg:col-span-1 flex flex-col gap-md"><div class="flex items-center gap-xs mb-xs"><img alt="SouraMAIL Logo" class="h-6 w-6 object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1VMjKhhpMksnOK20L3AE2VYU1_AesAgftuZhrFpE1oj7vr0d9hIKhhWcE1v6ZgfptW4KdfjFb07jfIyIxSc_bnYeT0sSeC9ESr7X2bbJofjg9DT7Kc6CkEBTPXeNuqc1XQqDzen-OutiBVswBTdnWiSkMBs22pTY0WVXJYinahRMBLnqyTGRtRziMvJvWCN-mryez8aOYdT00jS6_EELDOgbTtxOk9M6eVgKykEGOILkUuP2X1yl31XumRW"><span class="font-headline-md text-[18px] font-bold text-on-surface tracking-tight">SouraMAIL</span></div><p class="text-[13px] text-on-surface-variant max-w-[200px] leading-relaxed">The developer-first email infrastructure for the AI era.</p></div><div class="flex flex-col gap-md"><h4 class="font-label-md text-[13px] text-on-surface font-semibold">Product</h4><nav class="flex flex-col gap-sm"><a class="text-[14px] text-on-surface-variant hover:text-[#00A48A] transition-colors" href="#">Inbox</a><a class="text-[14px] text-on-surface-variant hover:text-[#00A48A] transition-colors" href="#">Email API</a><a class="text-[14px] text-on-surface-variant hover:text-[#00A48A] transition-colors" href="#">AI Copilot</a><a class="text-[14px] text-on-surface-variant hover:text-[#00A48A] transition-colors" href="#">AI Rules</a><a class="text-[14px] text-on-surface-variant hover:text-[#00A48A] transition-colors" href="#">MCP</a><a class="text-[14px] text-on-surface-variant hover:text-[#00A48A] transition-colors" href="#">Automations</a></nav></div><div class="flex flex-col gap-md"><h4 class="font-label-md text-[13px] text-on-surface font-semibold">Developers</h4><nav class="flex flex-col gap-sm"><a class="text-[14px] text-on-surface-variant hover:text-[#00A48A] transition-colors" href="#">Documentation</a><a class="text-[14px] text-on-surface-variant hover:text-[#00A48A] transition-colors" href="#">API Reference</a><a class="text-[14px] text-on-surface-variant hover:text-[#00A48A] transition-colors" href="#">SDKs</a><a class="text-[14px] text-on-surface-variant hover:text-[#00A48A] transition-colors" href="#">Webhooks</a><a class="text-[14px] text-on-surface-variant hover:text-[#00A48A] transition-colors" href="#">Changelog</a><a class="text-[14px] text-on-surface-variant hover:text-[#00A48A] transition-colors" href="#">Status</a></nav></div><div class="flex flex-col gap-md"><h4 class="font-label-md text-[13px] text-on-surface font-semibold">Company</h4><nav class="flex flex-col gap-sm"><a class="text-[14px] text-on-surface-variant hover:text-[#00A48A] transition-colors" href="#">About</a><a class="text-[14px] text-on-surface-variant hover:text-[#00A48A] transition-colors" href="#">SouraMAIL for Startups</a><a class="text-[14px] text-on-surface-variant hover:text-[#00A48A] transition-colors" href="#">Blog</a><a class="text-[14px] text-on-surface-variant hover:text-[#00A48A] transition-colors" href="#">Contact</a></nav></div><div class="flex flex-col gap-md"><h4 class="font-label-md text-[13px] text-on-surface font-semibold">Legal</h4><nav class="flex flex-col gap-sm"><a class="text-[14px] text-on-surface-variant hover:text-[#00A48A] transition-colors" href="#">Privacy</a><a class="text-[14px] text-on-surface-variant hover:text-[#00A48A] transition-colors" href="#">Terms</a><a class="text-[14px] text-on-surface-variant hover:text-[#00A48A] transition-colors" href="#">Security</a></nav></div></div><div class="pt-lg border-t border-surface-container-highest flex flex-col md:flex-row justify-between items-center gap-md"><div class="flex items-center gap-sm"><img alt="SouraMAIL Logo System" class="h-4 w-auto grayscale opacity-50" src="https://lh3.googleusercontent.com/aida/AEtjO1VMjKhhpMksnOK20L3AE2VYU1_AesAgftuZhrFpE1oj7vr0d9hIKhhWcE1v6ZgfptW4KdfjFb07jfIyIxSc_bnYeT0sSeC9ESr7X2bbJofjg9DT7Kc6CkEBTPXeNuqc1XQqDzen-OutiBVswBTdnWiSkMBs22pTY0WVXJYinahRMBLnqyTGRtRziMvJvWCN-mryez8aOYdT00jS6_EELDOgbTtxOk9M6eVgKykEGOILkUuP2X1yl31XumRW"><span class="text-[13px] text-on-surface-variant">© 2026 SouraMAIL Inc.</span></div><div class="flex gap-lg"><a class="text-[13px] text-on-surface-variant hover:text-[#00A48A] transition-colors flex items-center gap-xs" href="#"><span class="material-symbols-outlined text-[16px]">share</span> Twitter</a><a class="text-[13px] text-on-surface-variant hover:text-[#00A48A] transition-colors flex items-center gap-xs" href="#"><span class="material-symbols-outlined text-[16px]">code</span> GitHub</a></div></div></div></footer>
+
+</body></html>

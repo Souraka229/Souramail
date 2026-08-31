@@ -1,0 +1,32 @@
+# deps
+node_modules/
+.pnpm-store/
+
+# build
+dist/
+.next/
+.turbo/
+*.tsbuildinfo
+coverage/
+
+# env & secrets
+.env
+.env.*
+!.env.example
+
+# infra / data volumes
+infra/.data/
+infra/**/secrets/
+
+# editor / os
+.DS_Store
+Thumbs.db
+.idea/
+*.log
+
+# archives (kept out of git — source material)
+_archive/
+
+# references sources (add as submodules, not raw)
+references/*/
+!references/README.md
