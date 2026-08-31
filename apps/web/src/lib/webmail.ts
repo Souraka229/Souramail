@@ -302,12 +302,8 @@ function sessionUrl(): string {
   throw new WebmailUnavailable('Mail server not configured (STALWART_JMAP_URL).');
 }
 
+/** Crude HTML → text: drop tags + collapse whitespace. Single linear passes. */
 function stripHtml(html: string): string {
-  return html
-    .replace(/<style[\s\S]*?<\/style>/gi, '')
-    .replace(/<script[\s\S]*?<\/script>/gi, '')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/[ \t]{2,}/g, ' ')
-    .trim();
+  const noTags = html.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ');
+  return noTags.replace(/\s+/g, ' ').trim();
 }

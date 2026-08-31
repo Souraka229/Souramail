@@ -1,5 +1,5 @@
 import { Buffer } from 'node:buffer';
-import { timingSafeEqual } from 'node:crypto';
+import { randomUUID, timingSafeEqual } from 'node:crypto';
 import { resolveMailboxByAddress, storeInboundMessage } from '@souramail/db';
 import { simpleParser } from 'mailparser';
 
@@ -28,30 +28,25 @@ export async function POST(request: Request): Promise<Response> {
     return json({ error: 'bad json' }, 400);
   }
 
-  const raw = body.rawBase64
-    ? Buffer.from(body.rawBase64, 'base64')
-    : body.raw
-      ? Buffer.from(body.raw, 'utf8')
-      : null;
+  let raw: Buffer | null = null;
+  if (body.rawBase64) raw = Buffer.from(body.rawBase64, 'base64');
+  else if (body.raw) raw = Buffer.from(body.raw, 'utf8');
   if (!raw) return json({ error: 'no message' }, 400);
 
   const parsed = await simpleParser(raw);
-  const rcpt =
-    body.to ??
-    (Array.isArray(parsed.to) ? parsed.to[0]?.value[0]?.address : parsed.to?.value[0]?.address);
+  const toList = Array.isArray(parsed.to) ? parsed.to : parsed.to ? [parsed.to] : [];
+  const rcpt = body.to ?? toList[0]?.value[0]?.address;
   if (!rcpt) return json({ ok: true, ignored: 'no recipient' });
 
   const mbx = await resolveMailboxByAddress(rcpt).catch(() => null);
   if (!mbx) return json({ ok: true, unmatched: rcpt });
 
-  const toAddrs = (Array.isArray(parsed.to) ? parsed.to : parsed.to ? [parsed.to] : []).flatMap(
-    (a) => a.value.map((v) => v.address ?? '').filter(Boolean),
-  );
+  const toAddrs = toList.flatMap((a) => a.value.map((v) => v.address ?? '').filter(Boolean));
 
   const result = await storeInboundMessage({
     tenantId: mbx.tenantId,
     mailboxId: mbx.mailboxId,
-    rfcMessageId: parsed.messageId ?? `no-id-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    rfcMessageId: parsed.messageId ?? `no-id-${randomUUID()}`,
     fromAddr: body.from ?? parsed.from?.value[0]?.address ?? 'unknown@unknown',
     toAddrs: toAddrs.length ? toAddrs : [rcpt],
     subject: parsed.subject ?? null,
