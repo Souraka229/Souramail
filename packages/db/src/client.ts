@@ -5,7 +5,24 @@ import * as schema from './schema.ts';
 export type Db = ReturnType<typeof createDb>;
 
 export function createPool(connectionString = requireEnv('DATABASE_URL')): Pool {
-  return new Pool({ connectionString, max: 10 });
+  // Serverless (Vercel) + Neon: the function instance — and this module-scope
+  // pool — is reused for minutes, but Neon closes idle server connections (and
+  // autosuspends the compute) after ~5 min. A pooled client whose socket has
+  // since died throws "Connection terminated"/"Connection closed" on the next
+  // query. Close our idle clients well before Neon does so the pool hands out
+  // fresh connections, and don't let a stale client wedge acquisition.
+  const pool = new Pool({
+    connectionString,
+    max: 10,
+    idleTimeoutMillis: 10_000,
+    connectionTimeoutMillis: 10_000,
+    keepAlive: true,
+    allowExitOnIdle: true,
+  });
+  // A pool 'error' on an *idle* client is not fatal — pg has already removed it.
+  // Without a listener, Node treats it as an unhandled error and crashes.
+  pool.on('error', () => {});
+  return pool;
 }
 
 export function createDb(pool: Pool = createPool()) {
