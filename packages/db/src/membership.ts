@@ -7,8 +7,10 @@
  * defined in ./rls.ts, which is the one sanctioned way to cross that boundary —
  * and only ever for the user id passed in.
  */
-import { sql } from 'drizzle-orm';
+import { asc, eq, sql } from 'drizzle-orm';
 import { type Db, getDb } from './client.ts';
+import { membership, user } from './schema.ts';
+import { withTenant } from './tenant.ts';
 
 export type MemberRole = 'owner' | 'admin' | 'member';
 
@@ -51,4 +53,29 @@ export async function getDefaultWorkspace(
 ): Promise<UserWorkspace | null> {
   const all = await listUserWorkspaces(userId, db);
   return all[0] ?? null;
+}
+
+export interface WorkspaceMember {
+  userId: string;
+  name: string;
+  email: string;
+  role: MemberRole;
+  joinedAt: Date;
+}
+
+/** Members of one workspace — RLS-scoped, so call it inside a tenant context. */
+export async function listWorkspaceMembers(tenantId: string): Promise<WorkspaceMember[]> {
+  return withTenant(getDb(), tenantId, (tx) =>
+    tx
+      .select({
+        userId: membership.userId,
+        name: user.name,
+        email: user.email,
+        role: membership.role,
+        joinedAt: membership.createdAt,
+      })
+      .from(membership)
+      .innerJoin(user, eq(user.id, membership.userId))
+      .orderBy(asc(membership.createdAt)),
+  );
 }

@@ -37,8 +37,10 @@ export {
 export {
   getDefaultWorkspace,
   listUserWorkspaces,
+  listWorkspaceMembers,
   type MemberRole,
   type UserWorkspace,
+  type WorkspaceMember,
 } from './membership.ts';
 export {
   type CreateWorkspaceInput,
