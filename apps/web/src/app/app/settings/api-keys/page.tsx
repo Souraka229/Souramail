@@ -8,7 +8,7 @@ import { CreateKeyForm } from './create-key-form';
 export default async function ApiKeysPage() {
   const { workspace } = await requireAppContext();
   const keys = await listApiKeys(workspace.workspaceId);
-  const apiBase = process.env.API_PUBLIC_URL ?? 'http://localhost:4000';
+  const apiBase = process.env.API_PUBLIC_URL ?? 'https://gala-guema.xyz/api/v1';
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
@@ -20,7 +20,8 @@ export default async function ApiKeysPage() {
           Authenticate the public API with{' '}
           <code className="font-mono">Authorization: Bearer soura_live_…</code> against{' '}
           <code className="font-mono">{apiBase}</code>. Docs at{' '}
-          <code className="font-mono">{apiBase}/docs</code>.
+          <code className="font-mono">{apiBase}</code> (OpenAPI:{' '}
+          <code className="font-mono">{apiBase}/openapi.json</code>).
         </p>
       </header>
 
