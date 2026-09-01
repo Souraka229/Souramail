@@ -18,6 +18,7 @@ const SECTIONS: { title: string; items: Item[] }[] = [
     items: [
       { href: '/app', label: 'Overview', icon: 'dashboard', exact: true },
       { href: '/app/domains', label: 'Domains', icon: 'dns' },
+      { href: '/app/settings/account', label: 'Account', icon: 'person' },
     ],
   },
   {
